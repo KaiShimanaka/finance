@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://qiita.com/haminiku/items/a032d94e4f0d862df2b2 -->
+<html xmlns:og="http://ogp.me/ns#"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita</title><meta content="width=device-width,initial-scale=1" name="viewport"><meta content="
+
+作ったモノ
+
+次の機能を実装してみました
+1. 最新の為替レートを取得し続けるプログラム
+2. AIを稼働させ自動売買するプログラム
+3. 最新のデータを元に新しいAIを遺伝的アルゴリズムで生成するプログラム
+4. AIのパフォーマンスを測定して引退と取引通貨単位を管理するプログラム
+
+
+背景
+
+OANDAが提供している取引用APIが、かなり良い感じだったので実現できました。
+特に1通貨単位(1ドル単位)で売買できるため、AI100個動かし取引を重ねても損失は1日数..." name="description"><meta content="summary" name="twitter:card"><meta content="@Qiita" name="twitter:site"><meta content="pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita" property="og:title"><meta content="article" property="og:type"><meta content="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2" property="og:url"><meta content="http://cdn.qiita.com/assets/qiita-fb-2887e7b4aad86fd8c25cea84846f2236.png" property="og:image"><meta content="# 作ったモノ
+次の機能を実装してみました
+1. 最新の為替レートを取得し続けるプログラム
+2. AIを稼働させ自動売買するプログラム
+3. 最新のデータを元に新しいAIを遺伝的アルゴリズムで生成するプログラム
+4. AIのパフォーマ..." property="og:description"><meta content="Qiita" property="og:site_name"><meta content="564524038" property="fb:admins"><link rel="shortcut icon" type="image/x-icon" href="http://cdn.qiita.com/assets/favicons/public/production-4ff10c1e1e2b5fcb353ff9cafdd56c70.ico"><link rel="apple-touch-icon" type="image/png" href="http://cdn.qiita.com/assets/favicons/public/apple-touch-icon-f9a6afad761ec2306e10db2736187c8b.png"><link href="http://qiita.com/opensearch.xml" rel="search" title="Qiita" type="application/opensearchdescription+xml"><link rel="stylesheet" media="all" href="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/public-d59f1d079544834f9742667c45f5b2a0.min.css"><meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="><script type="text/javascript" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/pageviews"></script><script type="text/javascript" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/segment"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/tdim-0.11.2.js.ダウンロード"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/uwt.js.ダウンロード"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/fbevents.js.ダウンロード"></script><script type="text/javascript" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/gtm.js.ダウンロード"></script><script type="text/javascript" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/audience"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/itm.js.ダウンロード"></script><script type="text/javascript" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/conversion_async.js.ダウンロード"></script><script type="text/javascript" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/conversion_async.js.ダウンロード"></script><script type="text/javascript" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/conversion_async.js.ダウンロード"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/gtm.js(1).ダウンロード"></script><script type="text/javascript" charset="utf-8" async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/button.3943c052be33b5e812dac6838df9cb3d.js.ダウンロード"></script><style type="text/css">.fb_hidden{position:absolute;top:-10000px;z-index:10001}.fb_reposition{overflow:hidden;position:relative}.fb_invisible{display:none}.fb_reset{background:none;border:0;border-spacing:0;color:#000;cursor:auto;direction:ltr;font-family:"lucida grande", tahoma, verdana, arial, sans-serif;font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;letter-spacing:normal;line-height:1;margin:0;overflow:visible;padding:0;text-align:left;text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal}.fb_reset>div{overflow:hidden}.fb_link img{border:none}@keyframes fb_transform{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}.fb_animate{animation:fb_transform .3s forwards}
+.fb_dialog{background:rgba(82, 82, 82, .7);position:absolute;top:-10000px;z-index:10001}.fb_reset .fb_dialog_legacy{overflow:visible}.fb_dialog_advanced{padding:10px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px}.fb_dialog_content{background:#fff;color:#333}.fb_dialog_close_icon{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 0 transparent;_background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yL/r/s816eWC-2sl.gif);cursor:pointer;display:block;height:15px;position:absolute;right:18px;top:17px;width:15px}.fb_dialog_mobile .fb_dialog_close_icon{top:5px;left:5px;right:auto}.fb_dialog_padding{background-color:transparent;position:absolute;width:1px;z-index:-1}.fb_dialog_close_icon:hover{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -15px transparent;_background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yL/r/s816eWC-2sl.gif)}.fb_dialog_close_icon:active{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -30px transparent;_background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yL/r/s816eWC-2sl.gif)}.fb_dialog_loader{background-color:#f6f7f9;border:1px solid #606060;font-size:24px;padding:20px}.fb_dialog_top_left,.fb_dialog_top_right,.fb_dialog_bottom_left,.fb_dialog_bottom_right{height:10px;width:10px;overflow:hidden;position:absolute}.fb_dialog_top_left{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 0;left:-10px;top:-10px}.fb_dialog_top_right{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -10px;right:-10px;top:-10px}.fb_dialog_bottom_left{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -20px;bottom:-10px;left:-10px}.fb_dialog_bottom_right{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -30px;right:-10px;bottom:-10px}.fb_dialog_vert_left,.fb_dialog_vert_right,.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{position:absolute;background:#525252;filter:alpha(opacity=70);opacity:.7}.fb_dialog_vert_left,.fb_dialog_vert_right{width:10px;height:100%}.fb_dialog_vert_left{margin-left:-10px}.fb_dialog_vert_right{right:0;margin-right:-10px}.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{width:100%;height:10px}.fb_dialog_horiz_top{margin-top:-10px}.fb_dialog_horiz_bottom{bottom:0;margin-bottom:-10px}.fb_dialog_iframe{line-height:0}.fb_dialog_content .dialog_title{background:#6d84b4;border:1px solid #365899;color:#fff;font-size:14px;font-weight:bold;margin:0}.fb_dialog_content .dialog_title>span{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yd/r/Cou7n-nqK52.gif) no-repeat 5px 50%;float:left;padding:5px 0 7px 26px}body.fb_hidden{-webkit-transform:none;height:100%;margin:0;overflow:visible;position:absolute;top:-10000px;left:0;width:100%}.fb_dialog.fb_dialog_mobile.loading{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ya/r/3rhSv5V8j3o.gif) white no-repeat 50% 50%;min-height:100%;min-width:100%;overflow:hidden;position:absolute;top:0;z-index:10001}.fb_dialog.fb_dialog_mobile.loading.centered{width:auto;height:auto;min-height:initial;min-width:initial;background:none}.fb_dialog.fb_dialog_mobile.loading.centered #fb_dialog_loader_spinner{width:100%}.fb_dialog.fb_dialog_mobile.loading.centered .fb_dialog_content{background:none}.loading.centered #fb_dialog_loader_close{color:#fff;display:block;padding-top:20px;clear:both;font-size:18px}#fb-root #fb_dialog_ipad_overlay{background:rgba(0, 0, 0, .45);position:absolute;bottom:0;left:0;right:0;top:0;width:100%;min-height:100%;z-index:10000}#fb-root #fb_dialog_ipad_overlay.hidden{display:none}.fb_dialog.fb_dialog_mobile.loading iframe{visibility:hidden}.fb_dialog_content .dialog_header{-webkit-box-shadow:white 0 1px 1px -1px inset;background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#738ABA), to(#2C4987));border-bottom:1px solid;border-color:#1d4088;color:#fff;font:14px Helvetica, sans-serif;font-weight:bold;text-overflow:ellipsis;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0;vertical-align:middle;white-space:nowrap}.fb_dialog_content .dialog_header table{-webkit-font-smoothing:subpixel-antialiased;height:43px;width:100%}.fb_dialog_content .dialog_header td.header_left{font-size:12px;padding-left:5px;vertical-align:middle;width:60px}.fb_dialog_content .dialog_header td.header_right{font-size:12px;padding-right:5px;vertical-align:middle;width:60px}.fb_dialog_content .touchable_button{background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#4966A6), color-stop(.5, #355492), to(#2A4887));border:1px solid #29487d;-webkit-background-clip:padding-box;-webkit-border-radius:3px;-webkit-box-shadow:rgba(0, 0, 0, .117188) 0 1px 1px inset, rgba(255, 255, 255, .167969) 0 1px 0;display:inline-block;margin-top:3px;max-width:85px;line-height:18px;padding:4px 12px;position:relative}.fb_dialog_content .dialog_header .touchable_button input{border:none;background:none;color:#fff;font:12px Helvetica, sans-serif;font-weight:bold;margin:2px -12px;padding:2px 6px 3px 6px;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog_content .dialog_header .header_center{color:#fff;font-size:16px;font-weight:bold;line-height:18px;text-align:center;vertical-align:middle}.fb_dialog_content .dialog_content{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/y9/r/jKEcVPZFk-2.gif) no-repeat 50% 50%;border:1px solid #555;border-bottom:0;border-top:0;height:150px}.fb_dialog_content .dialog_footer{background:#f6f7f9;border:1px solid #555;border-top-color:#ccc;height:40px}#fb_dialog_loader_close{float:left}.fb_dialog.fb_dialog_mobile .fb_dialog_close_button{text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog.fb_dialog_mobile .fb_dialog_close_icon{visibility:hidden}#fb_dialog_loader_spinner{animation:rotateSpinner 1.2s linear infinite;background-color:transparent;background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yD/r/t-wz8gw1xG1.png);background-repeat:no-repeat;background-position:50% 50%;height:24px;width:24px}@keyframes rotateSpinner{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.fb_iframe_widget{display:inline-block;position:relative}.fb_iframe_widget span{display:inline-block;position:relative;text-align:justify}.fb_iframe_widget iframe{position:absolute}.fb_iframe_widget_fluid_desktop,.fb_iframe_widget_fluid_desktop span,.fb_iframe_widget_fluid_desktop iframe{max-width:100%}.fb_iframe_widget_fluid_desktop iframe{min-width:220px;position:relative}.fb_iframe_widget_lift{z-index:1}.fb_hide_iframes iframe{position:relative;left:-10000px}.fb_iframe_widget_loader{position:relative;display:inline-block}.fb_iframe_widget_fluid{display:inline}.fb_iframe_widget_fluid span{width:100%}.fb_iframe_widget_loader iframe{min-height:32px;z-index:2;zoom:1}.fb_iframe_widget_loader .FB_Loader{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/y9/r/jKEcVPZFk-2.gif) no-repeat;height:32px;width:32px;margin-left:-16px;position:absolute;left:50%;z-index:4}</style></head><body class=" with-js"><noscript>&lt;iframe height="0" src="//www.googletagmanager.com/ns.html?id=GTM-TBQWPN" style="display:none;visibility:hidden" width="0"&gt;&lt;/iframe&gt;</noscript><script src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/cb=gapi.loaded_1" async=""></script><script src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/cb=gapi.loaded_0" async=""></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/gtm.js(2).ダウンロード"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/analytics.js.ダウンロード"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/52738645.js.ダウンロード" id="optimizely-jssdk"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/ga.js.ダウンロード" id="google-analytics-jssdk"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/widgets.js.ダウンロード" id="twitter-jssdk"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/all.js.ダウンロード" id="facebook-jssdk"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/plusone.js.ダウンロード" id="google-plusone-jssdk" gapi_processed="true"></script><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/btn.js.ダウンロード" id="pocket-btn-js"></script><script src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/ca-pub-8127218772604357.js.ダウンロード"></script><script>
+  document.body.className = document.body.className.replace('without-js', '') + ' with-js';
+  window.Qiita = {"asset_host":"cdn.qiita.com","TLD":"com","controller_path":"public/items","controller_action":"public/items#show","controller":"items","action":"show","env":"production","flash":{},"is_landing_page":false,"is_team_page":false,"root_domain":"qiita.com","variant":null,"config":{"mixpanel":{"career":"dd35af27e959781713d63fd7ca898a8d","per_team":"c0a2116368b33b44b5029ebd2cc9b094","public":"be87616606b0e26a87689099aab2c4e5","team":"b7c0342acba2dbc8742484d98788efb3"},"default_locale":"ja","locale":"ja"},"team":null,"user":null,"GIT_BRANCH":null,"DEBUG":false};
+
+</script>
+<div class="headerContainer headerContainer-public" role="navigation"><div data-react-class="T.HeaderContainer" data-react-props="{&quot;user&quot;:null,&quot;team&quot;:null,&quot;news&quot;:{&quot;type&quot;:&quot;募集&quot;,&quot;content&quot;:&quot;QiitaやQiita:Teamを良くしたいエンジニア&quot;,&quot;url&quot;:&quot;http://increments.co.jp/jobs/engineers?utm_source=qiita\u0026utm_medium=header_news&quot;},&quot;initial_unread_count&quot;:null,&quot;siteid_image&quot;:&quot;http://cdn.qiita.com/siteid-reverse.png&quot;,&quot;is_team_page&quot;:false,&quot;on_team_setting&quot;:false,&quot;show_post_menu&quot;:true,&quot;show_search_menu&quot;:true,&quot;is_fluid&quot;:false,&quot;locale&quot;:&quot;ja&quot;}"><header data-reactroot="" class="sharedHeader sharedHeader-public"><div class="sharedHeader_inner"><div class="sharedHeader_left"><span class="sharedHeader_logo open"><a class="sharedHeader_logo_main" href="http://qiita.com/"><span class="sharedHeader_logo_figure"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 26"><title>Qiita</title><path d="M24.6 12.2C24.6 6.2 20 0 12.2 0 6.2 0 0 4.6 0 12.4c0 6 4.6 12.2 12.4 12.2 2.5 0 5-.8 7.1-2.3l3.6 3.6 1.6-1.6-3.4-3.4c2.1-2.3 3.3-5.3 3.3-8.7zm-12.4-10c5.7 0 10.2 4.4 10.2 10.1 0 4.9-3.8 10.1-10.1 10.1s-10.1-5.1-10.1-10c0-6.4 5.1-10.2 10-10.2zM30.5 7.1h2.1v17h-2.1zM31.5 4.8c-1 0-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8 1.8.8 1.8 1.8-.8 1.8-1.8 1.8zM40 4.8c-1 0-1.8-.8-1.8-1.8S39 1.2 40 1.2s1.8.8 1.8 1.8S41 4.8 40 4.8zM39 7.1h2.1v17H39zM53.7 24.4c-3.9 0-6.2-3-6.2-6v-16h2.1v4.7H57v2.1h-7.4v9.3c0 1.9 1.5 3.9 4.1 3.9.7 0 1.4-.2 2-.6l.2-.1 1 1.8-.2.1c-.9.5-2 .8-3 .8zM67.6 24.5c-5.7 0-9.1-4.5-9.1-8.9 0-5.7 4.5-9.1 8.9-9.1 2.3 0 4.1.8 5.4 2.3V7.1h2.1v17h-2.1v-1.9c-1.2 1.5-3 2.3-5.2 2.3zm-.2-15.9c-3.4 0-6.8 2.6-6.8 7 0 3.4 2.6 6.8 7 6.8 2 0 4-.9 5.3-2.5v-8.8c-1.4-1.6-3.3-2.5-5.5-2.5z"></path></svg></span></a></span><form class="navbar-form navbar-left searchForm" action="http://qiita.com/search" method="get"><div class="searchForm_queryWrapper"><input class="form-control searchForm_query" placeholder="キーワードを入力" autocomplete="off" name="q" value=""><div class="searchForm_wiseSearchButton"><i class="fa fa-caret-down"></i></div></div></form><div class="navbar-text headerNews hidden-xs hidden-sm"><div class="headerNews_label label label-warning">募集</div><a class="navbar-link" target="_blank" href="http://increments.co.jp/jobs/engineers?utm_source=qiita&amp;utm_medium=header_news">QiitaやQiita:Teamを良くしたいエンジニア</a></div></div><div class="sharedHeader_right"><div class="sharedHeader_registerUser"><a class="btn btn-warning navbar-btn navbar-right" href="http://qiita.com/signup?redirect_to=%2Fhaminiku%2Fitems%2Fa032d94e4f0d862df2b2">ユーザ登録</a></div><div class="sharedHeader_loginUser"><a data-label="LoginButtonAtNavbar" href="http://qiita.com/login?redirect_to=%2Fhaminiku%2Fitems%2Fa032d94e4f0d862df2b2">ログイン</a></div></div></div></header></div></div><div id="main"><ol class="itemBreadcrumbs" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://qiita.com/"><span itemprop="name">Qiita</span></a><meta content="1" itemprop="position"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://qiita.com/items"><span itemprop="name">投稿</span></a><meta content="2" itemprop="position"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://qiita.com/tags/Python"><span itemprop="name">Python</span></a><meta content="3" itemprop="position"></li></ol><article itemscope="" itemtype="http://schema.org/Article"><div class="ArticleMainHeader "><div class="container"></div><div class="container"><div class="row s-flex-align-center"><div class="col-sm-9"><h1 class="ArticleMainHeader__title">pythonと遺伝的アルゴリズムで作るFX自動売買システム その1</h1><ul class="list-unstyled list-inline itemsShowHeaderTags"><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/Python"><img alt="Python" class="tagIcon_img" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/medium.jpg"><div class="tagIcon_name">Python</div><div class="tagIcon_count">8846</div></a></div></li><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92"><img alt="機械学習" class="tagIcon_img" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/medium(1).jpg"><div class="tagIcon_name">機械学習</div><div class="tagIcon_count">1540</div></a></div></li><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/%E8%87%AA%E5%8B%95%E5%A3%B2%E8%B2%B7"><img alt="自動売買" class="tagIcon_img" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/missing.png"><div class="tagIcon_name">自動売買</div><div class="tagIcon_count">5</div></a></div></li></ul></div><div class="col-sm-3"><div class="itemsShowHeaderStock"><ul class="list-unstyled itemsShowHeaderStock_statusList"><li><div class="itemsShowHeaderStock_count stock"><span class="fa fa-thumbs-up"></span><span class="js-likecount">1291</span></div><div class="itemsShowHeaderStock_countText">いいね</div></li><li><div class="itemsShowHeaderStock_count" content="3 UserComments" itemprop="interactionCount"><span class="fa fa-comment"></span>3</div><div class="itemsShowHeaderStock_countText">コメント</div></li></ul></div><div class="js-likebutton" data-props="{&quot;like_status&quot;:false,&quot;like_count&quot;:1291,&quot;uuid&quot;:&quot;a032d94e4f0d862df2b2&quot;,&quot;likable_type&quot;:&quot;Article&quot;,&quot;position&quot;:&quot;article-header&quot;}"><div data-reactroot="" class="LikeButton"><button class="p-button"><span class="fa fa-fw fa-thumbs-up"></span><span>いいね</span></button></div></div><ul class="list-inline ArticleMainHeader__users"><li class="js-hovercard" data-hovercard-target-name="rollcabbage"><a itemprop="url" href="http://qiita.com/rollcabbage"><img alt="rollcabbage" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/3e8ffe7c54966ca57f23dd95741a3cab"></a></li><li class="js-hovercard" data-hovercard-target-name="yishibashi"><a itemprop="url" href="http://qiita.com/yishibashi"><img alt="yishibashi" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473700731"></a></li><li class="js-hovercard" data-hovercard-target-name="shiitakealien"><a itemprop="url" href="http://qiita.com/shiitakealien"><img alt="shiitakealien" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473697693"></a></li><li class="js-hovercard" data-hovercard-target-name="kiichi54321"><a itemprop="url" href="http://qiita.com/kiichi54321"><img alt="kiichi54321" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473689593"></a></li><li class="js-hovercard" data-hovercard-target-name="pocari"><a itemprop="url" href="http://qiita.com/pocari"><img alt="pocari" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1478844537"></a></li><li class="js-hovercard" data-hovercard-target-name="KazBond"><a itemprop="url" href="http://qiita.com/KazBond"><img alt="KazBond" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473699122"></a></li><li class="js-hovercard" data-hovercard-target-name="kentaroikemoto"><a itemprop="url" href="http://qiita.com/kentaroikemoto"><img alt="kentaroikemoto" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473696675"></a></li><li class="js-hovercard" data-hovercard-target-name="mofoolog"><a itemprop="url" href="http://qiita.com/mofoolog"><img alt="mofoolog" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473699355"></a></li><li class="js-hovercard" data-hovercard-target-name="tomotaka_ito"><a itemprop="url" href="http://qiita.com/tomotaka_ito"><img alt="tomotaka_ito" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473687787"></a></li><li class="js-hovercard" data-hovercard-target-name="cactaceae"><a itemprop="url" href="http://qiita.com/cactaceae"><img alt="cactaceae" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1480962182"></a></li><li><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/likers"><span class="fa fa-ellipsis-h"></span></a></li></ul></div></div></div></div><div class="ArticleAsideHeader"><div class="container"><div class="u-flex u-space-between"><div class="u-flex u-flex-wrap"><div class="u-flex u-align-center s-pdv-5 u-flex-wrap"><div class="ArticleAsideHeader__author"><a href="http://qiita.com/haminiku"><img class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473696847" alt="1473696847"></a> <a class="u-link-unstyled" href="http://qiita.com/haminiku">haminiku</a> </div><div class="ArticleAsideHeader__date"><span data-toggle="tooltip" title="" data-original-title="2015年09月30日に投稿"><time datetime="2015-10-02T16:48:32+09:00" itemprop="dateModified">2015年10月02日</time>に更新</span></div></div><div class="u-flex u-align-center s-pdv-5 mobile-hidden"><div class="ArticleAsideHeader__revision"> <a data-toggle="tooltip" title="" href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/revisions" data-original-title="編集履歴"><span class="fa fa-history"></span></a><span class="ArticleAsideHeader__revisionCount">6</span></div></div><div class="u-flex u-align-center s-pdv-5 mobile-hidden"></div></div><div class="u-flex u-align-center s-flex-justiry-between s-pdv-5 u-shrink-0"><div class="ArticleAsideHeader__stock"><div class="js-stockButton StockButton" data-counter="" data-path="/haminiku/items/a032d94e4f0d862df2b2" data-position="top" data-uuid="a032d94e4f0d862df2b2"><form class="button_to" method="post" action="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/stock"><button class="StockButton__stock" type="submit"><div class="fa-stack fa-lg"><span class="fa fa-folder-open fa-stack-1x unstock"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="></form><form class="button_to" method="post" action="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/unstock"><button class="StockButton__unstock" data-toggle="tooltip" title="" type="submit" data-original-title="ストック済み"><div class="fa-stack fa-lg"><span class="fa fa-folder fa-stack-1x"></span><span class="fa fa-check fa-stack-1x fa-inverse"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="></form></div></div><div class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#"><span class="fa fa-ellipsis-h fa-lg"></span></a><ul class="dropdown-menu dropdown-menu-right"><li class="dropdown__item--mobile"><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/revisions"><span class="fa fa-fw fa-history"></span> 編集履歴<span>(6)</span></a></li><li><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2.md"><span class="fa fa-fw fa-file-text-o"></span> Markdownで本文を見る</a></li><li><a data-target=".js-report-form" data-toggle="modal" href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#"><span class="fa fa-fw fa-flag"></span> 問題がある投稿を報告する</a></li></ul></div></div></div></div></div><div class="container"><div class="row" id="article-body-wrapper" style="position: relative;"><div class="col-sm-9"><section class="markdownContent markdownContent-headingEnabled js-task-list-container clearfix position-relative" id="item-a032d94e4f0d862df2b2" itemprop="articleBody"><div class="alert alert-warning"><i class="fa fa-clock-o"></i> この記事は最終更新日から1年以上が経過しています。</div>
+<h1>
+<span id="作ったモノ" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E4%BD%9C%E3%81%A3%E3%81%9F%E3%83%A2%E3%83%8E"><i class="fa fa-link"></i></a>作ったモノ</h1>
+
+<p>次の機能を実装してみました<br>
+1. 最新の為替レートを取得し続けるプログラム<br>
+2. AIを稼働させ自動売買するプログラム<br>
+3. 最新のデータを元に新しいAIを遺伝的アルゴリズムで生成するプログラム<br>
+4. AIのパフォーマンスを測定して引退と取引通貨単位を管理するプログラム</p>
+
+<h1>
+<span id="背景" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E8%83%8C%E6%99%AF"><i class="fa fa-link"></i></a>背景</h1>
+
+<p>OANDAが提供している取引用APIが、かなり良い感じだったので実現できました。<br>
+特に1通貨単位(1ドル単位)で売買できるため、AI100個動かし取引を重ねても損失は1日数十円に収まります。試験時に売買システムがバグで暴走しても安心です。このAPIが無ければ個人では実現出来なかったので、良い時代になったなーと思います。<br>
+<a href="http://developer.oanda.com/rest-live/development-guide/" class="autolink" rel="nofollow noopener" target="_blank">http://developer.oanda.com/rest-live/development-guide/</a></p>
+
+<h1>
+<span id="遺伝的アルゴリズムの特徴" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%AE%E7%89%B9%E5%BE%B4"><i class="fa fa-link"></i></a>遺伝的アルゴリズムの特徴</h1>
+
+<p>最適化問題の準最適解を短時間で解ける。<br>
+最適化問題や準最適解ってなんじゃらほいって時は、遺伝的アルゴリズムでマリオを攻略している動画を観るとなんとなく判るかもしれません。<br>
+→<a href="http://www.nicovideo.jp/watch/sm18721450" rel="nofollow noopener" target="_blank">【ニコ動】スーパーマリオブラザーズを学習させてみた</a></p>
+
+<h1>
+<span id="レートを取得する" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E3%83%AC%E3%83%BC%E3%83%88%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B"><i class="fa fa-link"></i></a>レートを取得する</h1>
+
+<p>curlでOandaAPI試しつつ、試し終わったらpythonで書いていきます</p>
+
+<div class="code-frame" data-lang="shell-session">
+<div class="code-lang"><span class="bold">request</span></div>
+<div class="highlight"><pre><span class="go">curl -X GET "https://api-sandbox.oanda.com/v1/candles?instrument=EUR_USD&amp;count=100&amp;candleFormat=midpoint&amp;granularity=D&amp;dailyAlignment=0&amp;alignmentTimezone=America%2FNew_York"</span>
+</pre></div>
+</div>
+
+<div class="code-frame" data-lang="shell-session">
+<div class="code-lang"><span class="bold">response</span></div>
+<div class="highlight"><pre><span class="go">{</span>
+<span class="go">    "instrument" : "EUR_USD",</span>
+<span class="go">    "granularity" : "D",</span>
+<span class="go">    "candles" : [</span>
+<span class="go">        {</span>
+<span class="go">            "time" : "2015-06-22T04:00:00.000000Z",</span>
+<span class="go">            "openMid" : 1.24121,</span>
+<span class="go">            "highMid" : 1.241535,</span>
+<span class="go">            "lowMid" : 1.240145,</span>
+<span class="go">            "closeMid" : 1.24113,</span>
+<span class="go">            "volume" : 24144,</span>
+<span class="go">            "complete" : true</span>
+<span class="go">        }</span>
+<span class="go">    ]</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+
+<div class="code-frame" data-lang="py">
+<div class="code-lang"><span class="bold">レート取得pythonコード</span></div>
+<div class="highlight"><pre><span class="n">base_domain</span> <span class="o">=</span> <span class="n">MODE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'production'</span><span class="p">)</span>
+<span class="n">url_base</span> <span class="o">=</span> <span class="s">'https://{}/v1/candles?'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_domain</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="n">url_base</span> <span class="o">+</span> <span class="s">'instrument={}&amp;'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">currency_pair</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> \
+    <span class="s">'count=5000&amp;'</span> <span class="o">+</span>\
+    <span class="s">'candleFormat=midpoint&amp;'</span> <span class="o">+</span>\
+    <span class="s">'granularity={}&amp;'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">granularity</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span>\
+    <span class="s">'dailyAlignment=0&amp;'</span> <span class="o">+</span>\
+    <span class="s">'alignmentTimezone=Asia</span><span class="si">%2F</span><span class="s">Tokyo&amp;'</span> <span class="o">+</span>\
+    <span class="s">'start={}T00%3A00%3A00Z'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests_api</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">requests_api</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">auth</span> <span class="o">=</span> <span class="s">'Bearer {}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_password</span><span class="p">(</span><span class="s">'OandaRestAPIToken'</span><span class="p">))</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">'Accept-Encoding'</span><span class="p">:</span> <span class="s">'identity, deflate, compress, gzip'</span><span class="p">,</span>
+               <span class="s">'Accept'</span><span class="p">:</span> <span class="s">'*/*'</span><span class="p">,</span> <span class="s">'User-Agent'</span><span class="p">:</span> <span class="s">'python-requests/1.2.0'</span><span class="p">,</span>
+               <span class="s">'Content-type'</span><span class="p">:</span> <span class="s">'application/json; charset=utf-8'</span><span class="p">,</span>
+               <span class="s">'Authorization'</span><span class="p">:</span> <span class="n">auth</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">payload</span><span class="p">:</span>
+        <span class="n">requests</span><span class="o">.</span><span class="n">adapters</span><span class="o">.</span><span class="n">DEFAULT_RETRIES</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">requests</span><span class="o">.</span><span class="n">adapters</span><span class="o">.</span><span class="n">DEFAULT_RETRIES</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">'REQUEST_API: {}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span>
+</pre></div>
+</div>
+
+<h1>
+<span id="簡単な売買aiを作ってみよう" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E7%B0%A1%E5%8D%98%E3%81%AA%E5%A3%B2%E8%B2%B7ai%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%88%E3%81%86"><i class="fa fa-link"></i></a>簡単な売買AIを作ってみよう</h1>
+
+<p>■ 仕様<br>
+現在レートと24時間平均レートを比較し、30pip以上乖離している場合は順張りで利確と損切りを30pipで設定して売買を実施する.</p>
+
+<p>■ 動作例<br>
+通貨:ドル円<br>
+現在時刻: 2015年10月1日 10:00:00<br>
+現在レート: 120.00円<br>
+24時間平均レート: 119.40円<br>
+購入通貨単位: 100<br>
+注文内容: 120円で100単位BUY、利益確定は120.30円、損切りは119.70円</p>
+
+<div class="code-frame" data-lang="py">
+<div class="code-lang"><span class="bold">code</span></div>
+<div class="highlight"><pre><span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+
+
+<span class="k">class</span> <span class="nc">OrderType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">Buy</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Wait</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Sell</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+
+<span class="k">class</span> <span class="nc">Rate</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">start_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">bid</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mf">120.00</span><span class="p">)</span>
+    <span class="n">h24</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mf">119.40</span><span class="p">)</span>
+    <span class="n">base_tick</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">currency</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">start_at</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Rate</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tick</span><span class="p">,</span> <span class="n">is_add</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_add</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bid</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">tick</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_tick</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bid</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">tick</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_tick</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AIOrder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order_type</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">stop_limit</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">order_type</span> <span class="o">=</span> <span class="n">order_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_limit</span> <span class="o">=</span> <span class="n">stop_limit</span>
+
+
+<span class="k">class</span> <span class="nc">AI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">DIFF</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">LIMIT</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">STOP_LIMIT</span> <span class="o">=</span> <span class="mi">30</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rate</span> <span class="o">=</span> <span class="n">rate</span>
+
+    <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">"""</span>
+<span class="sd">        発注する。</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_order</span><span class="p">():</span>
+            <span class="n">order</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_order</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_can_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">"""</span>
+<span class="sd">        発注可能か返却</span>
+<span class="sd">        rtype: bool</span>
+<span class="sd">        """</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">bid</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">h24</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">base_tick</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">point</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">DIFF</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">"""</span>
+<span class="sd">        発注クラスを返却</span>
+<span class="sd">        rtype: AIOrder</span>
+<span class="sd">        """</span>
+        <span class="n">limit_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">get_rate</span><span class="p">(</span><span class="n">AI</span><span class="o">.</span><span class="n">LIMIT</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">stop_limit_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">get_rate</span><span class="p">(</span><span class="n">AI</span><span class="o">.</span><span class="n">STOP_LIMIT</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">AIOrder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_order_type</span><span class="p">(),</span> <span class="n">limit_rate</span><span class="p">,</span> <span class="n">stop_limit_rate</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_order_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">bid</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">h24</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">OrderType</span><span class="o">.</span><span class="n">Buy</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">h24</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="o">.</span><span class="n">bid</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">OrderType</span><span class="o">.</span><span class="n">Sell</span>
+        <span class="k">return</span> <span class="n">OrderType</span><span class="o">.</span><span class="n">Wait</span>
+
+
+<span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="n">ai_order</span><span class="p">):</span>
+    <span class="n">_base</span> <span class="o">=</span> <span class="s">"OrderDone:{}, Limit:{}, Stop-Limit:{}"</span>
+    <span class="k">print</span> <span class="n">_base</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ai_order</span><span class="o">.</span><span class="n">order_type</span><span class="p">,</span>
+                       <span class="n">ai_order</span><span class="o">.</span><span class="n">limit</span><span class="p">,</span>
+                       <span class="n">ai_order</span><span class="o">.</span><span class="n">stop_limit</span><span class="p">)</span>
+
+<span class="c"># レート取得</span>
+<span class="n">rate</span> <span class="o">=</span> <span class="n">Rate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">currency</span><span class="o">=</span><span class="s">'USDJPY'</span><span class="p">,</span> <span class="n">start_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+
+<span class="c"># AI生成</span>
+<span class="n">ai</span> <span class="o">=</span> <span class="n">AI</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+
+<span class="c"># 発注</span>
+<span class="n">ai</span><span class="o">.</span><span class="n">order</span><span class="p">()</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">OrderDone</span><span class="p">:</span><span class="bp">True</span><span class="p">,</span> <span class="n">Limit</span><span class="p">:</span><span class="mf">120.3</span><span class="p">,</span> <span class="n">Stop</span><span class="o">-</span><span class="n">Limit</span><span class="p">:</span><span class="mf">119.7</span>
+</pre></div>
+</div>
+
+<h1>
+<span id="売買aiをベンチマークしてみる" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E5%A3%B2%E8%B2%B7ai%E3%82%92%E3%83%99%E3%83%B3%E3%83%81%E3%83%9E%E3%83%BC%E3%82%AF%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B"><i class="fa fa-link"></i></a>売買AIをベンチマークしてみる</h1>
+
+<p>このAIが利益を出す優秀なAIかどうか、5分足のデータでベンチマークしてみましょう。優秀なAIの定義を次の通り定義してみました<br>
+1. 過去10年の相場にて取引回数が100回以上あること<br>
+2. 過去10年の相場にて利益が100万円以上であること<br>
+3. 過去10年の相場にて最大損失が50万円以下であること</p>
+
+<p>過去に遡ったベンチマークのことをバックテストと言います。<br>
+またプログラム売買の場合、3の条件が重要視されます。というのも基本放置なので大きく儲かるけど、大きく損失もするプログラムは好まれません。3のことを最大ドローダウンと言います。</p>
+
+<h1>
+<span id="売買aiを遺伝的アルゴリズムで最適化する" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E5%A3%B2%E8%B2%B7ai%E3%82%92%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E6%9C%80%E9%81%A9%E5%8C%96%E3%81%99%E3%82%8B"><i class="fa fa-link"></i></a>売買AIを遺伝的アルゴリズムで最適化する</h1>
+
+<p>売買AIは3つのパラメータで構成されています。この値を最適化してみます。<br>
+つまり売買AIが最適化問題として定義されたわけです。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="k">class</span> <span class="nc">AI</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c"># 発注を決定する要素、24h平均との差がこの値以上で発注する。</span>
+    <span class="n">DIFF</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="c"># 発注時の利益確定レートを決定する要素</span>
+    <span class="n">LIMIT</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="c"># 発注時の損切りレートを決定する要素</span>
+    <span class="n">STOP_LIMIT</span> <span class="o">=</span> <span class="mi">30</span>
+</pre></div></div>
+
+<p>この3パラメータの上限と下限を400と10とすると、全パターンの計算回数は<br>
+390 ^ 3 = 59,319,000回です。<br>
+5分足で10年分のバックテストを行うと、pythonは計算が遅いので10秒くらい掛かります。CPU:8コアのパソコンで並列計算すると必要な計算時間は次の通りです。<br>
+59,319,000 / 8cpu * 10秒 / 3600秒 / 24時間 = 858日</p>
+
+<p>計算時間858日です。100台のPCで分散計算しても9日掛かってしまいます。<br>
+全パターン計算することを線形探索と言います。</p>
+
+<p>さて1番ではないけれど、59,319,000個のAIの中で利益が30位のAIは無意味なAIでしょうか？準最適解を求めるのに、遺伝的アルゴリズムは有効に働きます。</p>
+
+<h1>
+<span id="遺伝的アルゴリズムで計算する前の事前準備" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E8%A8%88%E7%AE%97%E3%81%99%E3%82%8B%E5%89%8D%E3%81%AE%E4%BA%8B%E5%89%8D%E6%BA%96%E5%82%99"><i class="fa fa-link"></i></a>遺伝的アルゴリズムで計算する前の事前準備</h1>
+
+<p>遺伝的アルゴリズムで計算するときのルールを決定します。<br>
+1. 初期パラメータを10-400の間でランダムで決定する<br>
+2. 200世代まで計算する。<br>
+3. 売買利益をスコアとして改善していく。<br>
+4. 1世代での個体数を20とする<br>
+5. 突然変異率を1%とする ... etc</p>
+
+<p>個体数や突然変異率によって計算効率が異なります。どんな値を使うと効率がいいかといった観点での論文も存在するので興味があったら読むといいかも</p>
+
+<h1>
+<span id="遺伝的アルゴリズムでよくある失敗-部分最適化" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E5%A4%B1%E6%95%97-%E9%83%A8%E5%88%86%E6%9C%80%E9%81%A9%E5%8C%96"><i class="fa fa-link"></i></a>遺伝的アルゴリズムでよくある失敗 部分最適化</h1>
+
+<p>200世代で計算を終了せず、延々と進化させていくと、だいたいが部分最適化して効率が落ちます<br>
+<a href="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/3813a636-85ed-087c-b275-2787ba06ac9d.png" target="_blank" rel="nofollow noopener"><img src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/3813a636-85ed-087c-b275-2787ba06ac9d.png" alt="スクリーンショット 2015-09-30 14.57.54.png"></a></p>
+
+<h1>
+<span id="遺伝的アルゴリズムでの計算結果" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%81%AE%E8%A8%88%E7%AE%97%E7%B5%90%E6%9E%9C"><i class="fa fa-link"></i></a>遺伝的アルゴリズムでの計算結果</h1>
+
+<p>最終的にこんな感じのデータが集まります。<br>
+<a href="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/06282923-8428-405d-f284-d6ea5d89cb36.png" target="_blank" rel="nofollow noopener"><img src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/06282923-8428-405d-f284-d6ea5d89cb36.png" alt="スクリーンショット 2015-09-30 14.58.53.png"></a></p>
+
+<h1>
+<span id="遺伝的アルゴリズムでの実装" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%81%AE%E5%AE%9F%E8%A3%85"><i class="fa fa-link"></i></a>遺伝的アルゴリズムでの実装</h1>
+
+<p>遺伝的アルゴリズムでいうところの交叉・突然変異の実装方法<br>
+初期集団の生成方法<br>
+バックテストアルゴリズム<br>
+実際の売買システム構築</p>
+
+<p>まだまだ書き切れていないので、後日その2で紹介していきたいなーと思います。</p>
+
+<h1>
+<span id="次の記事を書いてみました" class="fragment"></span><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E6%AC%A1%E3%81%AE%E8%A8%98%E4%BA%8B%E3%82%92%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%BF%E3%81%BE%E3%81%97%E3%81%9F"><i class="fa fa-link"></i></a>次の記事を書いてみました</h1>
+
+<p><a href="http://qiita.com/haminiku/items/b4b3a4e3c52252e1d7ee" id="reference-5ed6bf46296f54464930">遺伝的アルゴリズムでFX自動売買 その2 進化する売買AIの実装</a></p>
+<div class="hidden"><form class="js-task-list-update" action="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓"><input type="hidden" name="_method" value="patch"><input type="hidden" name="authenticity_token" value="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="><input type="hidden" name="updated_at_confirmation_in_unixtime" id="updated_at_confirmation_in_unixtime" value="1443772112" class="js-task-list-updated-at"><textarea name="raw_body" id="raw_body" class="js-task-list-field"># 作ったモノ
+次の機能を実装してみました
+1. 最新の為替レートを取得し続けるプログラム
+2. AIを稼働させ自動売買するプログラム
+3. 最新のデータを元に新しいAIを遺伝的アルゴリズムで生成するプログラム
+4. AIのパフォーマンスを測定して引退と取引通貨単位を管理するプログラム
+
+# 背景
+OANDAが提供している取引用APIが、かなり良い感じだったので実現できました。
+特に1通貨単位(1ドル単位)で売買できるため、AI100個動かし取引を重ねても損失は1日数十円に収まります。試験時に売買システムがバグで暴走しても安心です。このAPIが無ければ個人では実現出来なかったので、良い時代になったなーと思います。
+http://developer.oanda.com/rest-live/development-guide/
+
+# 遺伝的アルゴリズムの特徴
+最適化問題の準最適解を短時間で解ける。
+最適化問題や準最適解ってなんじゃらほいって時は、遺伝的アルゴリズムでマリオを攻略している動画を観るとなんとなく判るかもしれません。
+→[【ニコ動】スーパーマリオブラザーズを学習させてみた](http://www.nicovideo.jp/watch/sm18721450)
+
+# レートを取得する
+curlでOandaAPI試しつつ、試し終わったらpythonで書いていきます
+
+```shell-session:request
+curl -X GET "https://api-sandbox.oanda.com/v1/candles?instrument=EUR_USD&amp;count=100&amp;candleFormat=midpoint&amp;granularity=D&amp;dailyAlignment=0&amp;alignmentTimezone=America%2FNew_York"
+```
+
+```shell-session:response
+{
+	"instrument" : "EUR_USD",
+	"granularity" : "D",
+	"candles" : [
+		{
+			"time" : "2015-06-22T04:00:00.000000Z",
+			"openMid" : 1.24121,
+			"highMid" : 1.241535,
+			"lowMid" : 1.240145,
+			"closeMid" : 1.24113,
+			"volume" : 24144,
+			"complete" : true
+		}
+	]
+}
+```
+
+```py:レート取得pythonコード
+base_domain = MODE.get('production')
+url_base = 'https://{}/v1/candles?'.format(base_domain)
+url = url_base + 'instrument={}&amp;'.format(currency_pair.name) + \
+    'count=5000&amp;' +\
+    'candleFormat=midpoint&amp;' +\
+    'granularity={}&amp;'.format(granularity.name) +\
+    'dailyAlignment=0&amp;' +\
+    'alignmentTimezone=Asia%2FTokyo&amp;' +\
+    'start={}T00%3A00%3A00Z'.format(start)
+
+response = requests_api(url)
+
+def requests_api(url, payload=None):
+    auth = 'Bearer {}'.format(get_password('OandaRestAPIToken'))
+    headers = {'Accept-Encoding': 'identity, deflate, compress, gzip',
+               'Accept': '*/*', 'User-Agent': 'python-requests/1.2.0',
+               'Content-type': 'application/json; charset=utf-8',
+               'Authorization': auth}
+    if payload:
+        requests.adapters.DEFAULT_RETRIES = 2
+        response = requests.post(url, headers=headers, data=payload, timeout=10)
+    else:
+        requests.adapters.DEFAULT_RETRIES = 2
+        response = requests.get(url, headers=headers, timeout=10)
+    print 'REQUEST_API: {}'.format(url)
+    return response
+```
+# 簡単な売買AIを作ってみよう
+■ 仕様
+現在レートと24時間平均レートを比較し、30pip以上乖離している場合は順張りで利確と損切りを30pipで設定して売買を実施する.
+
+■ 動作例
+通貨:ドル円
+現在時刻: 2015年10月1日 10:00:00
+現在レート: 120.00円
+24時間平均レート: 119.40円
+購入通貨単位: 100
+注文内容: 120円で100単位BUY、利益確定は120.30円、損切りは119.70円
+
+
+```py:code
+# -*- coding: utf-8 -*-
+import datetime
+from enum import Enum
+
+
+class OrderType(Enum):
+    Buy = 1
+    Wait = 0
+    Sell = -1
+
+
+class Rate(object):
+    start_at = datetime.datetime(2015, 10, 1, 10, 0, 0)
+    bid = float(120.00)
+    h24 = float(119.40)
+    base_tick = float(0.01)
+
+    @classmethod
+    def get(cls, currency=None, start_at=None):
+        return Rate()
+
+    def get_rate(self, tick, is_add):
+        if is_add:
+            return self.bid + float(tick * self.base_tick)
+        else:
+            return self.bid - float(tick * self.base_tick)
+
+
+class AIOrder(object):
+    def __init__(self, order_type, limit, stop_limit):
+        self.order_type = order_type
+        self.limit = limit
+        self.stop_limit = stop_limit
+
+
+class AI(object):
+    DIFF = 30
+    LIMIT = 30
+    STOP_LIMIT = 30
+
+    def __init__(self, rate):
+        self.rate = rate
+
+    def order(self):
+        """
+        発注する。
+        """
+        if self._can_order():
+            order(self._get_order())
+
+    def _can_order(self):
+        """
+        発注可能か返却
+        rtype: bool
+        """
+        point = (self.rate.bid - self.rate.h24) / self.rate.base_tick
+        return int(point / self.DIFF) not in [0]
+
+    def _get_order(self):
+        """
+        発注クラスを返却
+        rtype: AIOrder
+        """
+        limit_rate = self.rate.get_rate(AI.LIMIT, True)
+        stop_limit_rate = self.rate.get_rate(AI.STOP_LIMIT, False)
+        return AIOrder(self._get_order_type(), limit_rate, stop_limit_rate)
+
+    def _get_order_type(self):
+        if self.rate.bid &gt; self.rate.h24:
+            return OrderType.Buy
+        if self.rate.h24 &gt; self.rate.bid:
+            return OrderType.Sell
+        return OrderType.Wait
+
+
+def order(ai_order):
+    _base = "OrderDone:{}, Limit:{}, Stop-Limit:{}"
+    print _base.format(ai_order.order_type,
+                       ai_order.limit,
+                       ai_order.stop_limit)
+
+# レート取得
+rate = Rate.get(currency='USDJPY', start_at=datetime.datetime.now())
+
+# AI生成
+ai = AI(rate)
+
+# 発注
+ai.order()
+
+&gt;&gt;&gt; OrderDone:True, Limit:120.3, Stop-Limit:119.7
+```
+
+# 売買AIをベンチマークしてみる
+このAIが利益を出す優秀なAIかどうか、5分足のデータでベンチマークしてみましょう。優秀なAIの定義を次の通り定義してみました
+1. 過去10年の相場にて取引回数が100回以上あること
+2. 過去10年の相場にて利益が100万円以上であること
+3. 過去10年の相場にて最大損失が50万円以下であること
+
+過去に遡ったベンチマークのことをバックテストと言います。
+またプログラム売買の場合、3の条件が重要視されます。というのも基本放置なので大きく儲かるけど、大きく損失もするプログラムは好まれません。3のことを最大ドローダウンと言います。
+
+# 売買AIを遺伝的アルゴリズムで最適化する
+売買AIは3つのパラメータで構成されています。この値を最適化してみます。
+つまり売買AIが最適化問題として定義されたわけです。
+
+```py
+class AI(object):
+    # 発注を決定する要素、24h平均との差がこの値以上で発注する。
+    DIFF = 30
+    # 発注時の利益確定レートを決定する要素
+    LIMIT = 30
+    # 発注時の損切りレートを決定する要素
+    STOP_LIMIT = 30
+```
+
+この3パラメータの上限と下限を400と10とすると、全パターンの計算回数は
+390 ^ 3 = 59,319,000回です。
+5分足で10年分のバックテストを行うと、pythonは計算が遅いので10秒くらい掛かります。CPU:8コアのパソコンで並列計算すると必要な計算時間は次の通りです。
+59,319,000 / 8cpu * 10秒 / 3600秒 / 24時間 = 858日
+
+計算時間858日です。100台のPCで分散計算しても9日掛かってしまいます。
+全パターン計算することを線形探索と言います。
+
+さて1番ではないけれど、59,319,000個のAIの中で利益が30位のAIは無意味なAIでしょうか？準最適解を求めるのに、遺伝的アルゴリズムは有効に働きます。
+
+
+# 遺伝的アルゴリズムで計算する前の事前準備
+遺伝的アルゴリズムで計算するときのルールを決定します。
+1. 初期パラメータを10-400の間でランダムで決定する
+2. 200世代まで計算する。
+3. 売買利益をスコアとして改善していく。
+4. 1世代での個体数を20とする
+5. 突然変異率を1%とする ... etc
+
+個体数や突然変異率によって計算効率が異なります。どんな値を使うと効率がいいかといった観点での論文も存在するので興味があったら読むといいかも
+
+# 遺伝的アルゴリズムでよくある失敗 部分最適化
+200世代で計算を終了せず、延々と進化させていくと、だいたいが部分最適化して効率が落ちます
+![スクリーンショット 2015-09-30 14.57.54.png](https://qiita-image-store.s3.amazonaws.com/0/65312/3813a636-85ed-087c-b275-2787ba06ac9d.png)
+
+
+# 遺伝的アルゴリズムでの計算結果
+最終的にこんな感じのデータが集まります。
+![スクリーンショット 2015-09-30 14.58.53.png](https://qiita-image-store.s3.amazonaws.com/0/65312/06282923-8428-405d-f284-d6ea5d89cb36.png)
+
+
+# 遺伝的アルゴリズムでの実装
+遺伝的アルゴリズムでいうところの交叉・突然変異の実装方法
+初期集団の生成方法
+バックテストアルゴリズム
+実際の売買システム構築
+
+まだまだ書き切れていないので、後日その2で紹介していきたいなーと思います。
+
+# 次の記事を書いてみました
+[遺伝的アルゴリズムでFX自動売買 その2 進化する売買AIの実装](http://qiita.com/haminiku/items/b4b3a4e3c52252e1d7ee)
+
+
+
+</textarea><input type="submit" name="commit" value="Save changes" data-disable-with="Save changes"></form></div></section></div><div class="col-sm-3"><div class="socialButtons"><div class="socialButtons_twitter"><iframe id="twitter-widget-0" scrolling="no" frameborder="0" allowtransparency="true" class="twitter-share-button twitter-share-button-rendered twitter-tweet-button" title="Twitter Tweet Button" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/tweet_button.3748f7cda49448f6c6f7854238570ba0.en.html" style="position: static; visibility: visible; width: 61px; height: 20px;" data-url="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2"></iframe></div><div class="socialButtons_hatebu"><iframe class="hatena-bookmark-button-frame" title="はてブに追加" frameborder="0" scrolling="no" width="70" height="20" src="javascript:false" style="width: 59px; height: 20px;" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/saved_resource.html"></iframe><script async="async" charset="utf-8" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/bookmark_button.js.ダウンロード" type="text/javascript"></script></div><div class="socialButtons_googlePlus"><div id="___plusone_0" style="text-indent: 0px; margin: 0px; padding: 0px; background: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 90px; height: 20px;"><iframe frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 90px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 20px;" tabindex="0" vspace="0" width="100%" id="I0_1483270630229" name="I0_1483270630229" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/fastbutton.html" data-gapiattached="true" title="+1"></iframe></div></div><div class="socialButtons_facebook"><div class="fb-like fb_iframe_widget" data-action="like" data-href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2" data-layout="button_count" data-share="false" data-show-faces="false" fb-xfbml-state="rendered" fb-iframe-plugin-query="action=like&amp;app_id=222621691108322&amp;container_width=0&amp;href=http%3A%2F%2Fqiita.com%2Fhaminiku%2Fitems%2Fa032d94e4f0d862df2b2&amp;layout=button_count&amp;locale=en_US&amp;sdk=joey&amp;share=false&amp;show_faces=false"><span style="vertical-align: bottom; width: 74px; height: 20px;"><iframe name="f1e43447097745c" width="1000px" height="1000px" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" title="fb:like Facebook Social Plugin" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/like.html" style="border: none; visibility: visible; width: 74px; height: 20px;" class=""></iframe></span></div></div><div class="socialButtons_pocket"><div class="pocket-btn"><iframe width="135" height="22" id="pocket-button-0" frameborder="0" allowtransparency="true" scrolling="NO" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/button.html"></iframe></div></div></div><section class="itemsShowAuthorInfo" itemprop="author" itemscope="" itemtype="http://schema.org/Person"><a href="http://qiita.com/haminiku"><img alt="" class="itemsShowAuthorInfo_userIcon" itemprop="image" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473696847"></a><div class="itemsShowAuthorInfo_profileStats"><strong class="itemsShowAuthorInfo_userName" itemprop="name"><a itemprop="url" href="http://qiita.com/haminiku">haminiku</a></strong><div class="itemsShowAuthorInfo_contribution"><span class="itemsShowAuthorInfo_count">12184</span><span class="itemsShowAuthorInfo_unit">Contribution</span></div><div data-react-class="T.UserFollowButton" data-react-props="{&quot;url_name&quot;:&quot;haminiku&quot;,&quot;initial_followed_by&quot;:false,&quot;size&quot;:&quot;btn-xs&quot;,&quot;position&quot;:&quot;author-info&quot;}"><span data-reactroot="" class="userFollowButton"><button class="btn btn-default btn-block userFollowButton_inner btn-xs"><i class="i fa fa-user-plus"></i><!-- react-text: 4 -->フォロー<!-- /react-text --></button></span></div></div><section class="itemsShowAuthorPopularItems"><h5 class="itemsShowAuthorPopularItems_sectionTitle">Popular Posts</h5><ul class="itemsShowAuthorPopularItems_posts list-unstyled"><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/haminiku/items/711cbdb894d1d6839e3e">2016年 独りで新規WEBサービスを開発・運用した際の知見</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/haminiku/items/36982ae65a770565458d">TensorFlow 畳み込みニューラルネットワークで手書き認識率99.2%の分類器を構築</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/haminiku/items/9f1b9a2fb773c732c494">たった1人から始める社内テストコード文化</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2">pythonと遺伝的アルゴリズムで作るFX自動売買システム その1</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/haminiku/items/43bafbb9d74ef3a1f74c">Redis 本番障害から学んだコードレビューの勘所</a></li></ul></section></section><div class="scroll-chaser"><div class="google-adsense"><style>.test-text-responsible { width: 200px; height: 200px; }@media(min-width: 1200px) {  .test-text-responsible { width: 250px; height: 250px; }}@media(max-width: 979px) and (min-width: 768px) {  .test-text-responsible { width: 120px; height: 240px; }}@media(max-width: 767px) {  .test-text-responsible { width: 320px; height: 50px; }}</style><script async="" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/adsbygoogle.js.ダウンロード"></script><ins class="adsbygoogle test-text-responsible" data-ad-client="ca-pub-8127218772604357" data-ad-slot="3880091879" style="display: inline-block; width: 250px; height: 250px;" data-adsbygoogle-status="done"><ins id="aswift_0_expand" style="display:inline-table;border:none;height:250px;margin:0;padding:0;position:relative;visibility:visible;width:250px;background-color:transparent"><ins id="aswift_0_anchor" style="display:block;border:none;height:250px;margin:0;padding:0;position:relative;visibility:visible;width:250px;background-color:transparent"><iframe width="250" height="250" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/saved_resource(1).html"></iframe></ins></ins></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div><div data-react-class="T.Toc" data-react-props="{&quot;body&quot;:&quot;\u003cul\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E4%BD%9C%E3%81%A3%E3%81%9F%E3%83%A2%E3%83%8E\&quot;\u003e作ったモノ\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E8%83%8C%E6%99%AF\&quot;\u003e背景\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%AE%E7%89%B9%E5%BE%B4\&quot;\u003e遺伝的アルゴリズムの特徴\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E3%83%AC%E3%83%BC%E3%83%88%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B\&quot;\u003eレートを取得する\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E7%B0%A1%E5%8D%98%E3%81%AA%E5%A3%B2%E8%B2%B7ai%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%88%E3%81%86\&quot;\u003e簡単な売買AIを作ってみよう\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E5%A3%B2%E8%B2%B7ai%E3%82%92%E3%83%99%E3%83%B3%E3%83%81%E3%83%9E%E3%83%BC%E3%82%AF%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\&quot;\u003e売買AIをベンチマークしてみる\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E5%A3%B2%E8%B2%B7ai%E3%82%92%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E6%9C%80%E9%81%A9%E5%8C%96%E3%81%99%E3%82%8B\&quot;\u003e売買AIを遺伝的アルゴリズムで最適化する\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E8%A8%88%E7%AE%97%E3%81%99%E3%82%8B%E5%89%8D%E3%81%AE%E4%BA%8B%E5%89%8D%E6%BA%96%E5%82%99\&quot;\u003e遺伝的アルゴリズムで計算する前の事前準備\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E5%A4%B1%E6%95%97-%E9%83%A8%E5%88%86%E6%9C%80%E9%81%A9%E5%8C%96\&quot;\u003e遺伝的アルゴリズムでよくある失敗 部分最適化\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%81%AE%E8%A8%88%E7%AE%97%E7%B5%90%E6%9E%9C\&quot;\u003e遺伝的アルゴリズムでの計算結果\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%81%AE%E5%AE%9F%E8%A3%85\&quot;\u003e遺伝的アルゴリズムでの実装\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E6%AC%A1%E3%81%AE%E8%A8%98%E4%BA%8B%E3%82%92%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%BF%E3%81%BE%E3%81%97%E3%81%9F\&quot;\u003e次の記事を書いてみました\u003c/a\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n&quot;,&quot;wrapper&quot;:&quot;#article-body-wrapper&quot;}"><div style="position: relative; top: 0px; height: 0px;"></div><div data-reactroot="" class="tocTree" style="width: 270px; position: relative; top: 0px;"><div class="tocTree_contents nav" style="max-height: 690px;"><ul>
+<li class="active">
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E4%BD%9C%E3%81%A3%E3%81%9F%E3%83%A2%E3%83%8E">作ったモノ</a>
+</li>
+<li class="">
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E8%83%8C%E6%99%AF">背景</a>
+</li>
+<li class="">
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%AE%E7%89%B9%E5%BE%B4">遺伝的アルゴリズムの特徴</a>
+</li>
+<li class="">
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E3%83%AC%E3%83%BC%E3%83%88%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B">レートを取得する</a>
+</li>
+<li class="">
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E7%B0%A1%E5%8D%98%E3%81%AA%E5%A3%B2%E8%B2%B7ai%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%88%E3%81%86">簡単な売買AIを作ってみよう</a>
+</li>
+<li class="">
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E5%A3%B2%E8%B2%B7ai%E3%82%92%E3%83%99%E3%83%B3%E3%83%81%E3%83%9E%E3%83%BC%E3%82%AF%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B">売買AIをベンチマークしてみる</a>
+</li>
+<li class="">
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E5%A3%B2%E8%B2%B7ai%E3%82%92%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E6%9C%80%E9%81%A9%E5%8C%96%E3%81%99%E3%82%8B">売買AIを遺伝的アルゴリズムで最適化する</a>
+</li>
+<li>
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E8%A8%88%E7%AE%97%E3%81%99%E3%82%8B%E5%89%8D%E3%81%AE%E4%BA%8B%E5%89%8D%E6%BA%96%E5%82%99">遺伝的アルゴリズムで計算する前の事前準備</a>
+</li>
+<li>
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E5%A4%B1%E6%95%97-%E9%83%A8%E5%88%86%E6%9C%80%E9%81%A9%E5%8C%96">遺伝的アルゴリズムでよくある失敗 部分最適化</a>
+</li>
+<li>
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%81%AE%E8%A8%88%E7%AE%97%E7%B5%90%E6%9E%9C">遺伝的アルゴリズムでの計算結果</a>
+</li>
+<li>
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E9%81%BA%E4%BC%9D%E7%9A%84%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E3%81%A7%E3%81%AE%E5%AE%9F%E8%A3%85">遺伝的アルゴリズムでの実装</a>
+</li>
+<li>
+<a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#%E6%AC%A1%E3%81%AE%E8%A8%98%E4%BA%8B%E3%82%92%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%BF%E3%81%BE%E3%81%97%E3%81%9F">次の記事を書いてみました</a>
+</li>
+</ul>
+</div></div></div></div></div><div class="row"><div class="col-sm-9"><div class="ArticleFooter__menu"><div class="s-flex-align-center"><div class="js-likebutton" data-props="{&quot;like_status&quot;:false,&quot;like_count&quot;:1291,&quot;show_count&quot;:true,&quot;uuid&quot;:&quot;a032d94e4f0d862df2b2&quot;,&quot;likable_type&quot;:&quot;Article&quot;,&quot;position&quot;:&quot;article-footer&quot;}"><div data-reactroot="" class="LikeButton"><button class="p-button"><span class="fa fa-fw fa-thumbs-up"></span><span>いいね</span></button><div class="LikeButton__balloon">1291</div></div></div><div class="ArticleFooter__userList"><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="rollcabbage"><a itemprop="url" href="http://qiita.com/rollcabbage"><img alt="rollcabbage" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/3e8ffe7c54966ca57f23dd95741a3cab"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="yishibashi"><a itemprop="url" href="http://qiita.com/yishibashi"><img alt="yishibashi" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473700731"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="shiitakealien"><a itemprop="url" href="http://qiita.com/shiitakealien"><img alt="shiitakealien" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473697693"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="kiichi54321"><a itemprop="url" href="http://qiita.com/kiichi54321"><img alt="kiichi54321" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473689593"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="pocari"><a itemprop="url" href="http://qiita.com/pocari"><img alt="pocari" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1478844537"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="KazBond"><a itemprop="url" href="http://qiita.com/KazBond"><img alt="KazBond" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473699122"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="kentaroikemoto"><a itemprop="url" href="http://qiita.com/kentaroikemoto"><img alt="kentaroikemoto" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473696675"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="mofoolog"><a itemprop="url" href="http://qiita.com/mofoolog"><img alt="mofoolog" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473699355"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="tomotaka_ito"><a itemprop="url" href="http://qiita.com/tomotaka_ito"><img alt="tomotaka_ito" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473687787"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="cactaceae"><a itemprop="url" href="http://qiita.com/cactaceae"><img alt="cactaceae" class="thumb thumb--xs" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1480962182"></a></div></div><div class="ArticleFooter__user"><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/likers"><span class="fa fa-ellipsis-h"></span></a></div></div></div><div class="u-flex u-align-center"><div class="ArticleFooter__stock"><div class="js-stockButton StockButton" data-counter="" data-path="/haminiku/items/a032d94e4f0d862df2b2" data-position="top" data-uuid="a032d94e4f0d862df2b2"><form class="button_to" method="post" action="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/stock"><button class="StockButton__stock" type="submit"><div class="fa-stack fa-lg"><span class="fa fa-folder-open fa-stack-1x unstock"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="></form><form class="button_to" method="post" action="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2/unstock"><button class="StockButton__unstock" data-toggle="tooltip" title="" type="submit" data-original-title="ストック済み"><div class="fa-stack fa-lg"><span class="fa fa-folder fa-stack-1x"></span><span class="fa fa-check fa-stack-1x fa-inverse"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="></form></div></div><div class="ArticleFooter__editRequest"><a class="u-link-no-underline" data-toggle="tooltip" title="" href="http://qiita.com/drafts/a032d94e4f0d862df2b2/edit" data-original-title="投稿者に記事をより良くするための提案ができます 💪"><span class="fa fa-send-o fa-lg"></span> <span>編集リクエスト</span></a></div><div class="dropdown ArticleFooter__dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#"><span class="fa fa-ellipsis-h"></span></a><ul class="dropdown-menu dropdown-menu-right"><li><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2.md"><span class="fa fa-fw fa-file-text-o"></span> Markdownで本文を見る</a></li><li><a data-target=".js-report-form" data-toggle="modal" href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#"><i class="fa fa-fw fa-flag"></i> 問題がある投稿を報告する</a></li></ul></div></div></div><ul class="references js-referencesView"><li class="references_header"><i class="fa fa-fw fa-link"></i> この記事は以下の記事からリンクされています</li><li class="references_reference js-reference"><a href="http://qiita.com/haminiku/items/b4b3a4e3c52252e1d7ee#_reference-fc31a2b74a78fc1f667f"><img alt="" width="18" height="18" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473696847">遺伝的アルゴリズムでFX自動売買 その2 進化する売買AIの実装</a><span>からリンク</span><time class="references_datetime js-dateTimeView" datetime="2015-10-02T07:29:38+00:00" title="2015/10/2 16:29:38">約1年前</time></li><li class="references_reference js-reference"><a href="http://qiita.com/haminiku/items/cf2b9a8b3c362b315d93#_reference-0c070837e00bbdb73627"><img alt="" width="18" height="18" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473696847">遺伝的アルゴリズムでFX自動売買 その3 OandaAPIで実際に取引</a><span>からリンク</span><time class="references_datetime js-dateTimeView" datetime="2015-10-13T09:03:17+00:00" title="2015/10/13 18:03:17">約1年前</time></li><li class="references_reference js-reference"><a href="http://qiita.com/nishimuraatsushi/items/d468fec3f75039a70eaa#_reference-eef10112b73d7b14839b"><img alt="" width="18" height="18" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473710348">新人さんに python 使いになってもらうまで (2016年度版/宇宙物理学系の研究室)</a><span>からリンク</span><time class="references_datetime js-dateTimeView" datetime="2016-02-20T08:13:12+00:00" title="2016/2/20 17:13:12">11ヶ月前</time></li><li class="references_reference js-reference"><a href="http://qiita.com/ryo_grid/items/7746528f8cae8026b936#_reference-bf831a7f41371db91781"><img alt="" width="18" height="18" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473682364">ディープラーニングでFXのシステムトレーディングをするコードを書いた</a><span>からリンク</span><time class="references_datetime js-dateTimeView" datetime="2016-08-25T21:54:32+00:00" title="2016/8/26 6:54:32">4ヶ月前</time></li></ul><div class="itemsShowBody_articleColumnFooter"><div class="socialButtons"><div class="socialButtons_twitter"><iframe id="twitter-widget-1" scrolling="no" frameborder="0" allowtransparency="true" class="twitter-share-button twitter-share-button-rendered twitter-tweet-button" title="Twitter Tweet Button" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/tweet_button.3748f7cda49448f6c6f7854238570ba0.en(1).html" style="position: static; visibility: visible; width: 61px; height: 20px;" data-url="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2"></iframe></div><div class="socialButtons_hatebu"><iframe class="hatena-bookmark-button-frame" title="はてブに追加" frameborder="0" scrolling="no" width="70" height="20" src="javascript:false" style="width: 59px; height: 20px;" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/saved_resource(2).html"></iframe><script async="async" charset="utf-8" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/bookmark_button.js.ダウンロード" type="text/javascript"></script></div><div class="socialButtons_googlePlus"><div id="___plusone_1" style="text-indent: 0px; margin: 0px; padding: 0px; background: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 90px; height: 20px;"><iframe frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 90px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 20px;" tabindex="0" vspace="0" width="100%" id="I1_1483270630236" name="I1_1483270630236" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/fastbutton(1).html" data-gapiattached="true" title="+1"></iframe></div></div><div class="socialButtons_facebook"><div class="fb-like fb_iframe_widget" data-action="like" data-href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2" data-layout="button_count" data-share="false" data-show-faces="false" fb-xfbml-state="rendered" fb-iframe-plugin-query="action=like&amp;app_id=222621691108322&amp;container_width=0&amp;href=http%3A%2F%2Fqiita.com%2Fhaminiku%2Fitems%2Fa032d94e4f0d862df2b2&amp;layout=button_count&amp;locale=en_US&amp;sdk=joey&amp;share=false&amp;show_faces=false"><span style="vertical-align: bottom; width: 74px; height: 20px;"><iframe name="f98f83d5ea3348" width="1000px" height="1000px" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" title="fb:like Facebook Social Plugin" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/like(1).html" style="border: none; visibility: visible; width: 74px; height: 20px;" class=""></iframe></span></div></div><div class="socialButtons_pocket"><div class="pocket-btn"><iframe width="135" height="22" id="pocket-button-1" frameborder="0" allowtransparency="true" scrolling="NO" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/button(1).html"></iframe></div></div></div></div><div class="itemsShowComment_wrapper" id="comments"><div data-react-class="T.CommentListContainer" data-react-props="{&quot;currentUser&quot;:null,&quot;initialComments&quot;:[{&quot;banned&quot;:false,&quot;body&quot;:&quot;\u003cp\u003eここまでではなかったんですが、ちょっと作ろうかなと思っていた内容なので、大変興味があります！\u003c/p\u003e\n&quot;,&quot;created_at&quot;:&quot;2015-10-02T15:34:06+09:00&quot;,&quot;expanded_references&quot;:&quot;&quot;,&quot;id&quot;:348238,&quot;is_team&quot;:false,&quot;item_id&quot;:332067,&quot;item_type&quot;:&quot;PublicDomainArticle&quot;,&quot;item_uuid&quot;:&quot;a032d94e4f0d862df2b2&quot;,&quot;likable&quot;:false,&quot;liked&quot;:false,&quot;public_likes_count&quot;:1,&quot;raw_body&quot;:&quot;ここまでではなかったんですが、ちょっと作ろうかなと思っていた内容なので、大変興味があります！\n&quot;,&quot;reaction_types&quot;:[{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f44d.png&quot;,&quot;name&quot;:&quot;+1&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f64f.png&quot;,&quot;name&quot;:&quot;pray&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f389.png&quot;,&quot;name&quot;:&quot;tada&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f647.png&quot;,&quot;name&quot;:&quot;bow&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f631.png&quot;,&quot;name&quot;:&quot;scream&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f440.png&quot;,&quot;name&quot;:&quot;eyes&quot;}],&quot;reactions&quot;:[],&quot;team&quot;:null,&quot;team_membership&quot;:null,&quot;updatable&quot;:false,&quot;url&quot;:&quot;http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#comment-963d3ab719a69516430d&quot;,&quot;user&quot;:{&quot;contribution&quot;:1,&quot;created_at&quot;:&quot;2013-07-09T14:53:06+09:00&quot;,&quot;id&quot;:26768,&quot;is_admin&quot;:false,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/26768/profile-images/1473684692&quot;,&quot;suspended&quot;:false,&quot;url_name&quot;:&quot;HappyLuckyAkira&quot;},&quot;uuid&quot;:&quot;963d3ab719a69516430d&quot;,&quot;via_email&quot;:false},{&quot;banned&quot;:false,&quot;body&quot;:&quot;\u003cp\u003e大学の時にGAやってたんで懐かしいです。\u003c/p\u003e\n&quot;,&quot;created_at&quot;:&quot;2015-10-07T09:25:37+09:00&quot;,&quot;expanded_references&quot;:&quot;&quot;,&quot;id&quot;:351303,&quot;is_team&quot;:false,&quot;item_id&quot;:332067,&quot;item_type&quot;:&quot;PublicDomainArticle&quot;,&quot;item_uuid&quot;:&quot;a032d94e4f0d862df2b2&quot;,&quot;likable&quot;:false,&quot;liked&quot;:false,&quot;public_likes_count&quot;:1,&quot;raw_body&quot;:&quot;大学の時にGAやってたんで懐かしいです。\n&quot;,&quot;reaction_types&quot;:[{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f44d.png&quot;,&quot;name&quot;:&quot;+1&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f64f.png&quot;,&quot;name&quot;:&quot;pray&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f389.png&quot;,&quot;name&quot;:&quot;tada&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f647.png&quot;,&quot;name&quot;:&quot;bow&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f631.png&quot;,&quot;name&quot;:&quot;scream&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f440.png&quot;,&quot;name&quot;:&quot;eyes&quot;}],&quot;reactions&quot;:[],&quot;team&quot;:null,&quot;team_membership&quot;:null,&quot;updatable&quot;:false,&quot;url&quot;:&quot;http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#comment-1ba336ae6bbbb55db4ac&quot;,&quot;user&quot;:{&quot;contribution&quot;:1307,&quot;created_at&quot;:&quot;2013-10-20T18:27:42+09:00&quot;,&quot;id&quot;:31010,&quot;is_admin&quot;:false,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/31010/profile-images/1473685600&quot;,&quot;suspended&quot;:false,&quot;url_name&quot;:&quot;NewGyu&quot;},&quot;uuid&quot;:&quot;1ba336ae6bbbb55db4ac&quot;,&quot;via_email&quot;:false},{&quot;banned&quot;:false,&quot;body&quot;:&quot;\u003cp\u003e商品としてご掲載していただけないでしょうか!? 【ご報酬~90％☆】\u003c/p\u003e\n\n\u003cp\u003e突然のブログからのご連絡で申し訳ございません。\u003cbr\u003e\n初めまして。投資情報サイトfx-on.comを運営しています株式会社ゴゴジャンの中井と申します。\u003c/p\u003e\n\n\u003cp\u003e今回ブログを拝読しましてご連絡いたしました。\u003c/p\u003e\n\n\u003cp\u003e是非、インジケーター・EA・動画・電子書籍・メルマガなどを商品としてfx-onでご掲載していただけないでしょうか!？\u003cbr\u003e\nFXだけではなく株・日経225・CFD・不動産投etc…などもご相談ください♪\u003c/p\u003e\n\n\u003cp\u003eもちろんご自身のブログのブランディングもあると思いますので、事前にしっかりとお打合せを行い、今後のブログ活動のプラスになるようにサポートを行ってまいります。\u003c/p\u003e\n\n\u003cp\u003e初めての方でも商品作成～販売まで全て無料でサポートいたしますので、お気軽にお問合せください☆彡\u003c/p\u003e\n\n\u003cp\u003e※（例）FXブログランキング上位の『月光為替』もfx-onでメールマガジンと動画を商品化し、累計300名以上のお客様にご利用いただいています！\u003c/p\u003e\n\n\u003cp\u003e・月光為替の売買ルール　動画講座\u003cbr\u003e\n\u003ca href=\&quot;http://fx-on.com/ebooks/detail/?id=8960\&quot; class=\&quot;autolink\&quot; rel=\&quot;nofollow noopener\&quot; target=\&quot;_blank\&quot;\u003ehttp://fx-on.com/ebooks/detail/?id=8960\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e――――――――――――――\u003cbr\u003e\n◆各報酬メニュー◆\u003c/p\u003e\n\n\u003cp\u003e（例）\u003cbr\u003e\n【報酬率】商品タイプ（補足説明）\u003c/p\u003e\n\n\u003cp\u003e【90%】動画（ファイルダウンロード形式）\u003cbr\u003e\n【90%】電子書籍（認証保護機能付き）\u003cbr\u003e\n【90%】インジケーター（認証保護機能付き）\u003cbr\u003e\n【75%】メールマガジン（メルマガシステム貸出有）\u003cbr\u003e\n【75%】オンラインサロン（プラットフォーム提供有）\u003cbr\u003e\n【70%】動画（ストリーミング形式）\u003cbr\u003e\n【65%】EA（フォアード計測有）\u003c/p\u003e\n\n\u003cp\u003e◆掲載ページ◆\u003cbr\u003e\n\u003ca href=\&quot;http://fx-on.com/\&quot; class=\&quot;autolink\&quot; rel=\&quot;nofollow noopener\&quot; target=\&quot;_blank\&quot;\u003ehttp://fx-on.com/\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e――――――――――――――\u003c/p\u003e\n\n\u003cp\u003e詳しくはメール又はお電話にてお問い合わせください！\u003cbr\u003e\nご連絡心よりお待ちしています。\u003c/p\u003e\n\n\u003cp\u003eまた、不躾ながら私の名刺画像のリンクを添付しますのでご査収ください\u003cbr\u003e\n\u003ca href=\&quot;http://fx-on.com/up/%E5%90%8D%E5%88%BA%EF%BC%88%E6%A0%AA%E5%BC%8F%E4%BC%9A%E7%A4%BE%E3%82%B4%E3%82%B4%E3%82%B8%E3%83%A3%E3%83%B3%E3%83%BB%E4%B8%AD%E4%BA%95%EF%BC%891.png\&quot; class=\&quot;autolink\&quot; rel=\&quot;nofollow noopener\&quot; target=\&quot;_blank\&quot;\u003ehttp://fx-on.com/up/名刺（株式会社ゴゴジャン・中井）1.png\u003c/a\u003e\u003c/p\u003e\n\n\u003cp\u003e\u003ca href=\&quot;mailto:nakaigogojan@gmail.com\&quot; class=\&quot;autolink\&quot;\u003enakaigogojan@gmail.com\u003c/a\u003e\u003cbr\u003e\n株式会社ゴゴジャン・中井\u003cbr\u003e\n080-6529-7673\u003c/p\u003e\n\n\u003cp\u003e☆30秒で出品者登録できます\u003cbr\u003e\n\u003ca href=\&quot;https://fx-on.com/regist/dev/\&quot; class=\&quot;autolink\&quot; rel=\&quot;nofollow noopener\&quot; target=\&quot;_blank\&quot;\u003ehttps://fx-on.com/regist/dev/\u003c/a\u003e\u003c/p\u003e\n&quot;,&quot;created_at&quot;:&quot;2016-07-12T12:23:55+09:00&quot;,&quot;expanded_references&quot;:&quot;&quot;,&quot;id&quot;:589013,&quot;is_team&quot;:false,&quot;item_id&quot;:332067,&quot;item_type&quot;:&quot;PublicDomainArticle&quot;,&quot;item_uuid&quot;:&quot;a032d94e4f0d862df2b2&quot;,&quot;likable&quot;:false,&quot;liked&quot;:false,&quot;public_likes_count&quot;:0,&quot;raw_body&quot;:&quot;商品としてご掲載していただけないでしょうか!? 【ご報酬~90％☆】\n\n突然のブログからのご連絡で申し訳ございません。\n初めまして。投資情報サイトfx-on.comを運営しています株式会社ゴゴジャンの中井と申します。\n\n今回ブログを拝読しましてご連絡いたしました。\n\n是非、インジケーター・EA・動画・電子書籍・メルマガなどを商品としてfx-onでご掲載していただけないでしょうか!？\nFXだけではなく株・日経225・CFD・不動産投etc…などもご相談ください♪\n\nもちろんご自身のブログのブランディングもあると思いますので、事前にしっかりとお打合せを行い、今後のブログ活動のプラスになるようにサポートを行ってまいります。\n\n初めての方でも商品作成～販売まで全て無料でサポートいたしますので、お気軽にお問合せください☆彡\n\n※（例）FXブログランキング上位の『月光為替』もfx-onでメールマガジンと動画を商品化し、累計300名以上のお客様にご利用いただいています！\n\n・月光為替の売買ルール　動画講座\nhttp://fx-on.com/ebooks/detail/?id=8960\n\n――――――――――――――\n◆各報酬メニュー◆\n\n（例）\n【報酬率】商品タイプ（補足説明）\n\n【90%】動画（ファイルダウンロード形式）\n【90%】電子書籍（認証保護機能付き）\n【90%】インジケーター（認証保護機能付き）\n【75%】メールマガジン（メルマガシステム貸出有）\n【75%】オンラインサロン（プラットフォーム提供有）\n【70%】動画（ストリーミング形式）\n【65%】EA（フォアード計測有）\n\n◆掲載ページ◆\nhttp://fx-on.com/\n\n――――――――――――――\n\n詳しくはメール又はお電話にてお問い合わせください！\nご連絡心よりお待ちしています。\n\nまた、不躾ながら私の名刺画像のリンクを添付しますのでご査収ください\nhttp://fx-on.com/up/名刺（株式会社ゴゴジャン・中井）1.png\n\nnakaigogojan@gmail.com\n株式会社ゴゴジャン・中井\n080-6529-7673\n\n☆30秒で出品者登録できます\nhttps://fx-on.com/regist/dev/\n\n&quot;,&quot;reaction_types&quot;:[{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f44d.png&quot;,&quot;name&quot;:&quot;+1&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f64f.png&quot;,&quot;name&quot;:&quot;pray&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f389.png&quot;,&quot;name&quot;:&quot;tada&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f647.png&quot;,&quot;name&quot;:&quot;bow&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f631.png&quot;,&quot;name&quot;:&quot;scream&quot;},{&quot;image_url&quot;:&quot;https://cdn.qiita.com/emoji/twemoji/unicode/1f440.png&quot;,&quot;name&quot;:&quot;eyes&quot;}],&quot;reactions&quot;:[],&quot;team&quot;:null,&quot;team_membership&quot;:null,&quot;updatable&quot;:false,&quot;url&quot;:&quot;http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#comment-601b598f5786e3c6a089&quot;,&quot;user&quot;:{&quot;contribution&quot;:0,&quot;created_at&quot;:&quot;2016-07-12T12:21:21+09:00&quot;,&quot;id&quot;:133419,&quot;is_admin&quot;:false,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/133419/profile-images/1473718962&quot;,&quot;suspended&quot;:false,&quot;url_name&quot;:&quot;nakai5ou&quot;},&quot;uuid&quot;:&quot;601b598f5786e3c6a089&quot;,&quot;via_email&quot;:false}],&quot;monthly_public_image_uploadable_size_limit&quot;:null,&quot;total_uploaded_public_image_size_in_current_month&quot;:null,&quot;item&quot;:{&quot;id&quot;:332067,&quot;uuid&quot;:&quot;a032d94e4f0d862df2b2&quot;,&quot;suspended&quot;:false,&quot;secret&quot;:false},&quot;owner&quot;:{&quot;url_name&quot;:&quot;haminiku&quot;},&quot;is_team&quot;:false,&quot;is_project&quot;:false,&quot;logged_in&quot;:false,&quot;polling&quot;:false,&quot;mention_candidates&quot;:[{&quot;id&quot;:65312,&quot;url_name&quot;:&quot;haminiku&quot;,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/65312/profile-images/1473696847&quot;},{&quot;id&quot;:26768,&quot;url_name&quot;:&quot;HappyLuckyAkira&quot;,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/26768/profile-images/1473684692&quot;},{&quot;id&quot;:31010,&quot;url_name&quot;:&quot;NewGyu&quot;,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/31010/profile-images/1473685600&quot;},{&quot;id&quot;:133419,&quot;url_name&quot;:&quot;nakai5ou&quot;,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/133419/profile-images/1473718962&quot;}]}"><div data-reactroot="" class="commentList"><noscript></noscript><div class="comment"><div class="commentHeader"><div class="commentHeader_creator"><a href="http://qiita.com/HappyLuckyAkira"><span title="HappyLuckyAkira" itemprop="url" href="/HappyLuckyAkira"><img alt="" class="commentHeader_creatorIcon" itemprop="image" width="36" height="36" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473684692"></span></a><div class="commentHeader_creatorInfo"><div class="commentHeader_publicUrlName"><a href="http://qiita.com/HappyLuckyAkira">HappyLuckyAkira</a></div><div class="commentHeader_contribution"><span class="commentHeader_contribution_count">1</span><span class="commentHeader_contribution_unit">contribution</span></div></div></div><div class="commentHeader_metadata pull-right"><div class="text-right"><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#comment-963d3ab719a69516430d"><time datetime="2015-10-02T15:34:06+09:00" itemprop="commentTime">2015-10-02 15:34</time></a></div><div class="LikeButton LikeButton--small"><button class="p-button"><span class="fa fa-fw fa-thumbs-up"></span><span>いいね</span></button><div class="LikeButton__balloon">1</div></div></div></div><div class="comment_content"><div class="markdownContent"><p>ここまでではなかったんですが、ちょっと作ろうかなと思っていた内容なので、大変興味があります！</p>
+</div><!-- react-text: 26 --><!-- /react-text --></div></div><div class="comment"><div class="commentHeader"><div class="commentHeader_creator"><a href="http://qiita.com/NewGyu"><span title="NewGyu" itemprop="url" href="/NewGyu"><img alt="" class="commentHeader_creatorIcon" itemprop="image" width="36" height="36" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473685600"></span></a><div class="commentHeader_creatorInfo"><div class="commentHeader_publicUrlName"><a href="http://qiita.com/NewGyu">NewGyu</a></div><div class="commentHeader_contribution"><span class="commentHeader_contribution_count">1307</span><span class="commentHeader_contribution_unit">contribution</span></div></div></div><div class="commentHeader_metadata pull-right"><div class="text-right"><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#comment-1ba336ae6bbbb55db4ac"><time datetime="2015-10-07T09:25:37+09:00" itemprop="commentTime">2015-10-07 09:25</time></a></div><div class="LikeButton LikeButton--small"><button class="p-button"><span class="fa fa-fw fa-thumbs-up"></span><span>いいね</span></button><div class="LikeButton__balloon">1</div></div></div></div><div class="comment_content"><div class="markdownContent"><p>大学の時にGAやってたんで懐かしいです。</p>
+</div><!-- react-text: 50 --><!-- /react-text --></div></div><div class="comment"><div class="commentHeader"><div class="commentHeader_creator"><a href="http://qiita.com/nakai5ou"><span title="nakai5ou" itemprop="url" href="/nakai5ou"><img alt="" class="commentHeader_creatorIcon" itemprop="image" width="36" height="36" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/1473718962"></span></a><div class="commentHeader_creatorInfo"><div class="commentHeader_publicUrlName"><a href="http://qiita.com/nakai5ou">nakai5ou</a></div><div class="commentHeader_contribution"><span class="commentHeader_contribution_count">0</span><span class="commentHeader_contribution_unit">contribution</span></div></div></div><div class="commentHeader_metadata pull-right"><div class="text-right"><a href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2#comment-601b598f5786e3c6a089"><time datetime="2016-07-12T12:23:55+09:00" itemprop="commentTime">2016-07-12 12:23</time></a></div><div class="LikeButton LikeButton--small"><button class="p-button"><span class="fa fa-fw fa-thumbs-up"></span><span>いいね</span></button><div class="LikeButton__balloon">0</div></div></div></div><div class="comment_content"><div class="markdownContent"><p>商品としてご掲載していただけないでしょうか!? 【ご報酬~90％☆】</p>
+
+<p>突然のブログからのご連絡で申し訳ございません。<br>
+初めまして。投資情報サイトfx-on.comを運営しています株式会社ゴゴジャンの中井と申します。</p>
+
+<p>今回ブログを拝読しましてご連絡いたしました。</p>
+
+<p>是非、インジケーター・EA・動画・電子書籍・メルマガなどを商品としてfx-onでご掲載していただけないでしょうか!？<br>
+FXだけではなく株・日経225・CFD・不動産投etc…などもご相談ください♪</p>
+
+<p>もちろんご自身のブログのブランディングもあると思いますので、事前にしっかりとお打合せを行い、今後のブログ活動のプラスになるようにサポートを行ってまいります。</p>
+
+<p>初めての方でも商品作成～販売まで全て無料でサポートいたしますので、お気軽にお問合せください☆彡</p>
+
+<p>※（例）FXブログランキング上位の『月光為替』もfx-onでメールマガジンと動画を商品化し、累計300名以上のお客様にご利用いただいています！</p>
+
+<p>・月光為替の売買ルール　動画講座<br>
+<a href="http://fx-on.com/ebooks/detail/?id=8960" class="autolink" rel="nofollow noopener" target="_blank">http://fx-on.com/ebooks/detail/?id=8960</a></p>
+
+<p>――――――――――――――<br>
+◆各報酬メニュー◆</p>
+
+<p>（例）<br>
+【報酬率】商品タイプ（補足説明）</p>
+
+<p>【90%】動画（ファイルダウンロード形式）<br>
+【90%】電子書籍（認証保護機能付き）<br>
+【90%】インジケーター（認証保護機能付き）<br>
+【75%】メールマガジン（メルマガシステム貸出有）<br>
+【75%】オンラインサロン（プラットフォーム提供有）<br>
+【70%】動画（ストリーミング形式）<br>
+【65%】EA（フォアード計測有）</p>
+
+<p>◆掲載ページ◆<br>
+<a href="http://fx-on.com/" class="autolink" rel="nofollow noopener" target="_blank">http://fx-on.com/</a></p>
+
+<p>――――――――――――――</p>
+
+<p>詳しくはメール又はお電話にてお問い合わせください！<br>
+ご連絡心よりお待ちしています。</p>
+
+<p>また、不躾ながら私の名刺画像のリンクを添付しますのでご査収ください<br>
+<a href="http://fx-on.com/up/%E5%90%8D%E5%88%BA%EF%BC%88%E6%A0%AA%E5%BC%8F%E4%BC%9A%E7%A4%BE%E3%82%B4%E3%82%B4%E3%82%B8%E3%83%A3%E3%83%B3%E3%83%BB%E4%B8%AD%E4%BA%95%EF%BC%891.png" class="autolink" rel="nofollow noopener" target="_blank">http://fx-on.com/up/名刺（株式会社ゴゴジャン・中井）1.png</a></p>
+
+<p><a href="mailto:nakaigogojan@gmail.com" class="autolink">nakaigogojan@gmail.com</a><br>
+株式会社ゴゴジャン・中井<br>
+080-6529-7673</p>
+
+<p>☆30秒で出品者登録できます<br>
+<a href="https://fx-on.com/regist/dev/" class="autolink" rel="nofollow noopener" target="_blank">https://fx-on.com/regist/dev/</a></p>
+</div><!-- react-text: 74 --><!-- /react-text --></div></div></div></div></div></div></div></div></article><div class="js-report-form modal fade reportForm"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button name="button" type="submit" class="close" data-dismiss="modal">×</button><h4 class="modal-title">問題がある投稿を報告する</h4></div><div class="modal-body"><form action="http://qiita.com/reports" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓"><input type="hidden" name="authenticity_token" value="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="><input type="hidden" name="redirect_path" id="redirect_path" value="/haminiku/items/a032d94e4f0d862df2b2"><input type="hidden" name="item_uuid" id="item_uuid" value="a032d94e4f0d862df2b2"><p>この投稿にどのような問題がありますか？</p><br><div class="form-group"><ul class="list-unstyled"><li><label><input type="radio" name="report_type" id="report_type_spam" value="spam" required="required"> スパムです </label></li><li><label><input type="radio" name="report_type" id="report_type_harassment" value="harassment" required="required"> 攻撃的または迷惑な内容を含んでいます </label></li><li><label><input type="radio" name="report_type" id="report_type_inappropriate_content" value="inappropriate_content" required="required"> 不適切な内容を含んでいます </label></li></ul></div><div class="reportForm_submitButtonContainer"><button name="button" type="submit" class="btn btn-primary reportForm_submitButton"><i class="fa fa-send"></i> 送信</button></div></form></div></div></div></div><script id="js-item" type="application/json">{ "url": "http://qiita.com/haminiku/items/a032d94e4f0d862df2b2", "id": 332067, "uuid": "a032d94e4f0d862df2b2" }</script><script class="js-user" type="application/json">{&quot;id&quot;:65312,&quot;url_name&quot;:&quot;haminiku&quot;,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/65312/profile-images/1473696847&quot;}</script><script language="JavaScript" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/qiita_bigmining.js.ダウンロード" type="text/javascript"></script></div><footer class="footer"><div class="footer_inner"><div class="footer_container"><ul class="footer_links-left"><li class="footer_link"><a class="footer_copyright" href="http://increments.co.jp/">© 2017 Increments Inc.</a></li><li class="footer_link"><a href="http://qiita.com/terms">利用規約</a></li><li class="footer_link"><a href="http://qiita.com/privacy">プライバシー</a></li><li class="footer_link"><a href="http://help.qiita.com/">ヘルプ</a></li><li class="footer_link"><a href="https://increments.zendesk.com/anonymous_requests/new">お問い合わせ</a></li></ul><ul class="footer_links-right"><li class="footer_link"><a href="http://qiita.com/about">Qiitaとは</a></li><li class="footer_link"><a href="http://blog.qiita.com/">ブログ</a></li><li class="footer_link"><a href="http://qiita.com/api/v2/docs">API</a></li><li class="footer_link"><a href="https://teams.qiita.com/">Team</a></li><li class="footer_link"><a href="http://kobito.qiita.com/">Kobito</a></li><li class="footer_link"><a class="js-public-form-feedback-link" data-target=".js-feedback-form" data-toggle="modal" href="http://qiita.com/haminiku/items/a032d94e4f0d862df2b2"><i class="fa fa-heart"></i> ご意見 <i class="fa fa-caret-down"></i></a></li></ul></div></div></footer><div class="js-feedback-form modal fade feedbackForm"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button name="button" type="submit" class="close" data-dismiss="modal">×</button><h4 class="modal-title">ご意見</h4></div><div class="modal-body"><form class="js-feedback-form-form" action="http://qiita.com/feedbacks" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓"><input type="hidden" name="authenticity_token" value="OI6DMr9rN5V5J+k6mcgiWQLMDGxk94/MYH21tFvhvjdfh/lYIGz6uviK/D6xEAgNwkiQeijEcgCDskB89qjg9Q=="><input type="hidden" name="redirect_path" id="redirect_path" value="/haminiku/items/a032d94e4f0d862df2b2"><div class="form-group"><textarea name="feedback[message]" id="feedback_message" class="form-control js-feedback-form-text-area" placeholder="Qiitaについてのご意見をお聞かせください。" required="required" rows="5"></textarea></div><div class="feedbackForm_submitButtonContainer"><button name="button" type="submit" class="btn btn-primary feedbackForm_submitButton"><i class="fa fa-send"></i> 送信</button><p class="feedbackForm_note">いただいたご意見への返信は行っておりません。<br>返信の必要な内容については、<a href="https://increments.zendesk.com/anonymous_requests/new">こちら</a> からお問い合わせください。</p></div><div style="position:fixed;top:-99999px;opacity:0.0001;"><input name="feedback[name]" type="text"></div></form></div></div></div></div><script>// if (window.mixpanel instanceof Element) {
+//   window.mixpanel = [];
+// }
+// (function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+// for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);</script><script src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/public-fdf24df61a083ca5f74c8b717c9c4ff9.min.js.ダウンロード"></script><div id="fb-root" class=" fb_reset"><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div><iframe name="fb_xdm_frame_http" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_http" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/iPrOY23SGAp.html" style="border: none;"></iframe><iframe name="fb_xdm_frame_https" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_https" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/iPrOY23SGAp(1).html" style="border: none;"></iframe></div></div><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div></div></div></div><script>
+  (function () {
+    var script = document.getElementsByTagName('script')[0];
+    var load = function (src, id) {
+      var el = document.createElement('script');
+      el.async = true;
+      el.src = src;
+      el.id = id;
+      script.parentNode.insertBefore(el, script);
+    };
+      // Optimizely
+      load('//cdn.optimizely.com/js/52738645.js', 'optimizely-jssdk');
+      // Google Analytics
+      window._gaq = window._gaq || [];
+      var isCareer = location.hostname.split('.')[0] == 'career';
+      if (isCareer) {
+        window._gaq.push(['_setAccount', 'UA-24675221-11']);
+        window._gaq.push(['_setDomainName', 'qiita.com']);
+      } else {
+        window._gaq.push(['_setAccount', 'UA-24675221-1']);
+      }
+      window._gaq.push(['_setCustomVar', 1, 'logged_in', 'false', 2]);
+      window._gaq.push(['_trackPageview']);
+      var src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      load(src, 'google-analytics-jssdk');
+    // Google Analytics - Universal Analytics
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-24675221-12', {
+          
+        });
+          ga('create', 'UA-69760509-1', { name: 'user' });
+          ga('user.send', 'pageview');
+        ga('set', 'dimension1', 'false');
+        ga('set', 'dimension3', 'false');
+      ga('require', 'displayfeatures');
+      ga('set', 'forceSSL', true);
+      ga('send', 'pageview');
+    // Google Tag Manager
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-TBQWPN');
+  })();
+</script>
+<div class="ReactModalPortal"><div data-reactroot=""></div></div><iframe name="oauth2relay796487784" id="oauth2relay796487784" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/postmessageRelay.html" tabindex="-1" aria-hidden="true" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe><img src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/dmp" width="1" height="1" border="0" style="display: none;"><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-58Z82M');</script><div style="display: none; visibility: hidden;"><script type="text/javascript">(function(b,a,c){b=a.getElementsByTagName(c)[0];a=a.createElement(c);a.async=!0;a.src="//dmp.im-apps.net/js/6638/0001/itm.js";b.parentNode.insertBefore(a,b)})(window,document,"script");</script></div><div style="display: none; visibility: hidden;"><iframe src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/activityi.html" width="1" height="1" frameborder="0" style="display:none"></iframe></div><div style="display: none; visibility: hidden;"><iframe src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/activityi(1).html" width="1" height="1" frameborder="0" style="display:none"></iframe></div><div style="display: none; visibility: hidden;">
+<script src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/oct.js.ダウンロード" type="text/javascript"></script>
+<script type="text/javascript">twttr.conversion.trackPid("nv2kc",{tw_sale_amount:0,tw_order_quantity:0});</script>
+<noscript></noscript>
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","809797712462041");fbq("track","PageView");</script>
+<noscript></noscript>
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,c,d,a){b.twq||(a=b.twq=function(){a.exe?a.exe.apply(a,arguments):a.queue.push(arguments)},a.version="1",a.queue=[],t=c.createElement(d),t.async=!0,t.src="//static.ads-twitter.com/uwt.js",s=c.getElementsByTagName(d)[0],s.parentNode.insertBefore(t,s))}(window,document,"script");twq("init","nve3t");twq("track","PageView");</script>
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","996402550503199");fbq("track","PageView");</script>
+<noscript></noscript>
+
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","954575148009345");fbq("track","PageView");</script>
+<noscript></noscript>
+
+</div><iframe src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/pixel.html" style="display: none;"></iframe><script type="text/javascript" id="">!function(c,d,b,f){if(!d[c]){d[c]=function(){d[c].instances.push(this);this.init&&this.init()};d[c].instances=[];for(var a=0,e=["td_send","td_send_imid"];a<e.length;a++)d[c].prototype[e[a]]=function(a){return function(){this["tmp_"+a]=this["tmp_"+a]||[];this["tmp_"+a].push(Array.prototype.slice.call(arguments))}}(e[a]);a=b.getElementsByTagName(f)[0];b=b.createElement(f);b.async=!0;b.src="//cf.im-apps.net/sdk/tdim-0.11.2.js";a.parentNode.insertBefore(b,a)}}("TDIM",window,document,"script");var t=new TDIM;
+t.td_api_key="4633/44ab22321675f37f93c94f1c53265720999626e1";t.td_db="6638";t.im_api_token="omO0CDJd98sxiIkb8Mzm7Q";t.gtm_dl="dataLayer";t.td_send_imid("pageviews",{qiita_search_categories:google_tag_manager["GTM-5SNCW4"].macro('gtm1483270633156')});</script><script type="text/javascript" id="">(function(a){var b=a.createElement("iframe"),c="https:"==a.location.protocol?"https://":"http://";b.src=c+"cf.im-apps.net/imid/beacon.html";b.style.display="none";a.body.appendChild(b)})(document);</script><iframe src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/beacon.html" style="display: none;"></iframe><script src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/adsct" type="text/javascript"></script><script src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/adsct(1)" type="text/javascript"></script><iframe id="rufous-sandbox" scrolling="no" frameborder="0" allowtransparency="true" allowfullscreen="true" style="position: absolute; visibility: hidden; display: none; width: 0px; height: 0px; padding: 0px; border: none;" title="Twitter analytics iframe" src="./pythonと遺伝的アルゴリズムで作るFX自動売買システム その1 - Qiita_files/saved_resource(3).html"></iframe></body></html>

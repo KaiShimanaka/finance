@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)http://qiita.com/toyolab/items/e8292d2f051a88517cb2 -->
+<html xmlns:og="http://ogp.me/ns#"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>PythonでFXシストレのバックテスト(1) - Qiita</title><meta content="width=device-width,initial-scale=1" name="viewport"><meta content="
+
+はじめに
+
+Pythonでシストレのバックテストをするライブラリってたくさんあるのですが、MetaTraderから入った人にとってはわかりにくいので、Pythonの練習がてらバックテストのためのコードを書いてみました。
+
+Pythonでシストレのバックテスト
+
+ただ、最初のバージョンは、まず動くことを第一に書いたので、結構無駄があったり、実行速度が遅かったりしたので、今回、ちょっと改良してみました。
+
+
+FXヒストリカルデータの取得
+
+株価だと、Yahoo!とかから..." name="description"><meta content="summary" name="twitter:card"><meta content="@Qiita" name="twitter:site"><meta content="toyolab" name="twitter:creator"><meta content="PythonでFXシストレのバックテスト(1) - Qiita" property="og:title"><meta content="article" property="og:type"><meta content="http://qiita.com/toyolab/items/e8292d2f051a88517cb2" property="og:url"><meta content="http://cdn.qiita.com/assets/qiita-fb-2887e7b4aad86fd8c25cea84846f2236.png" property="og:image"><meta content="# はじめに
+Pythonでシストレのバックテストをするライブラリってたくさんあるのですが、MetaTraderから入った人にとってはわかりにくいので、Pythonの練習がてらバックテストのためのコードを書いてみました。
+
+[Pyth..." property="og:description"><meta content="Qiita" property="og:site_name"><meta content="564524038" property="fb:admins"><link rel="shortcut icon" type="image/x-icon" href="http://cdn.qiita.com/assets/favicons/public/production-4ff10c1e1e2b5fcb353ff9cafdd56c70.ico"><link rel="apple-touch-icon" type="image/png" href="http://cdn.qiita.com/assets/favicons/public/apple-touch-icon-f9a6afad761ec2306e10db2736187c8b.png"><link href="http://qiita.com/opensearch.xml" rel="search" title="Qiita" type="application/opensearchdescription+xml"><link rel="stylesheet" media="all" href="./PythonでFXシストレのバックテスト(1) - Qiita_files/public-d59f1d079544834f9742667c45f5b2a0.min.css"><meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="><script type="text/javascript" async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/pageviews"></script><script type="text/javascript" async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/segment"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/tdim-0.11.2.js.ダウンロード"></script><script type="text/javascript" async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/gtm.js.ダウンロード"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/uwt.js.ダウンロード"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/fbevents.js.ダウンロード"></script><script type="text/javascript" async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/audience"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/itm.js.ダウンロード"></script><script type="text/javascript" async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/conversion_async.js.ダウンロード"></script><script type="text/javascript" async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/conversion_async.js.ダウンロード"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/gtm.js(1).ダウンロード"></script><script type="text/javascript" charset="utf-8" async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/button.3943c052be33b5e812dac6838df9cb3d.js.ダウンロード"></script><style type="text/css">.fb_hidden{position:absolute;top:-10000px;z-index:10001}.fb_reposition{overflow:hidden;position:relative}.fb_invisible{display:none}.fb_reset{background:none;border:0;border-spacing:0;color:#000;cursor:auto;direction:ltr;font-family:"lucida grande", tahoma, verdana, arial, sans-serif;font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;letter-spacing:normal;line-height:1;margin:0;overflow:visible;padding:0;text-align:left;text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal}.fb_reset>div{overflow:hidden}.fb_link img{border:none}@keyframes fb_transform{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}.fb_animate{animation:fb_transform .3s forwards}
+.fb_dialog{background:rgba(82, 82, 82, .7);position:absolute;top:-10000px;z-index:10001}.fb_reset .fb_dialog_legacy{overflow:visible}.fb_dialog_advanced{padding:10px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px}.fb_dialog_content{background:#fff;color:#333}.fb_dialog_close_icon{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 0 transparent;_background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yL/r/s816eWC-2sl.gif);cursor:pointer;display:block;height:15px;position:absolute;right:18px;top:17px;width:15px}.fb_dialog_mobile .fb_dialog_close_icon{top:5px;left:5px;right:auto}.fb_dialog_padding{background-color:transparent;position:absolute;width:1px;z-index:-1}.fb_dialog_close_icon:hover{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -15px transparent;_background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yL/r/s816eWC-2sl.gif)}.fb_dialog_close_icon:active{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -30px transparent;_background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yL/r/s816eWC-2sl.gif)}.fb_dialog_loader{background-color:#f6f7f9;border:1px solid #606060;font-size:24px;padding:20px}.fb_dialog_top_left,.fb_dialog_top_right,.fb_dialog_bottom_left,.fb_dialog_bottom_right{height:10px;width:10px;overflow:hidden;position:absolute}.fb_dialog_top_left{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 0;left:-10px;top:-10px}.fb_dialog_top_right{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -10px;right:-10px;top:-10px}.fb_dialog_bottom_left{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -20px;bottom:-10px;left:-10px}.fb_dialog_bottom_right{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -30px;right:-10px;bottom:-10px}.fb_dialog_vert_left,.fb_dialog_vert_right,.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{position:absolute;background:#525252;filter:alpha(opacity=70);opacity:.7}.fb_dialog_vert_left,.fb_dialog_vert_right{width:10px;height:100%}.fb_dialog_vert_left{margin-left:-10px}.fb_dialog_vert_right{right:0;margin-right:-10px}.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{width:100%;height:10px}.fb_dialog_horiz_top{margin-top:-10px}.fb_dialog_horiz_bottom{bottom:0;margin-bottom:-10px}.fb_dialog_iframe{line-height:0}.fb_dialog_content .dialog_title{background:#6d84b4;border:1px solid #365899;color:#fff;font-size:14px;font-weight:bold;margin:0}.fb_dialog_content .dialog_title>span{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yd/r/Cou7n-nqK52.gif) no-repeat 5px 50%;float:left;padding:5px 0 7px 26px}body.fb_hidden{-webkit-transform:none;height:100%;margin:0;overflow:visible;position:absolute;top:-10000px;left:0;width:100%}.fb_dialog.fb_dialog_mobile.loading{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ya/r/3rhSv5V8j3o.gif) white no-repeat 50% 50%;min-height:100%;min-width:100%;overflow:hidden;position:absolute;top:0;z-index:10001}.fb_dialog.fb_dialog_mobile.loading.centered{width:auto;height:auto;min-height:initial;min-width:initial;background:none}.fb_dialog.fb_dialog_mobile.loading.centered #fb_dialog_loader_spinner{width:100%}.fb_dialog.fb_dialog_mobile.loading.centered .fb_dialog_content{background:none}.loading.centered #fb_dialog_loader_close{color:#fff;display:block;padding-top:20px;clear:both;font-size:18px}#fb-root #fb_dialog_ipad_overlay{background:rgba(0, 0, 0, .45);position:absolute;bottom:0;left:0;right:0;top:0;width:100%;min-height:100%;z-index:10000}#fb-root #fb_dialog_ipad_overlay.hidden{display:none}.fb_dialog.fb_dialog_mobile.loading iframe{visibility:hidden}.fb_dialog_content .dialog_header{-webkit-box-shadow:white 0 1px 1px -1px inset;background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#738ABA), to(#2C4987));border-bottom:1px solid;border-color:#1d4088;color:#fff;font:14px Helvetica, sans-serif;font-weight:bold;text-overflow:ellipsis;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0;vertical-align:middle;white-space:nowrap}.fb_dialog_content .dialog_header table{-webkit-font-smoothing:subpixel-antialiased;height:43px;width:100%}.fb_dialog_content .dialog_header td.header_left{font-size:12px;padding-left:5px;vertical-align:middle;width:60px}.fb_dialog_content .dialog_header td.header_right{font-size:12px;padding-right:5px;vertical-align:middle;width:60px}.fb_dialog_content .touchable_button{background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#4966A6), color-stop(.5, #355492), to(#2A4887));border:1px solid #29487d;-webkit-background-clip:padding-box;-webkit-border-radius:3px;-webkit-box-shadow:rgba(0, 0, 0, .117188) 0 1px 1px inset, rgba(255, 255, 255, .167969) 0 1px 0;display:inline-block;margin-top:3px;max-width:85px;line-height:18px;padding:4px 12px;position:relative}.fb_dialog_content .dialog_header .touchable_button input{border:none;background:none;color:#fff;font:12px Helvetica, sans-serif;font-weight:bold;margin:2px -12px;padding:2px 6px 3px 6px;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog_content .dialog_header .header_center{color:#fff;font-size:16px;font-weight:bold;line-height:18px;text-align:center;vertical-align:middle}.fb_dialog_content .dialog_content{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/y9/r/jKEcVPZFk-2.gif) no-repeat 50% 50%;border:1px solid #555;border-bottom:0;border-top:0;height:150px}.fb_dialog_content .dialog_footer{background:#f6f7f9;border:1px solid #555;border-top-color:#ccc;height:40px}#fb_dialog_loader_close{float:left}.fb_dialog.fb_dialog_mobile .fb_dialog_close_button{text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog.fb_dialog_mobile .fb_dialog_close_icon{visibility:hidden}#fb_dialog_loader_spinner{animation:rotateSpinner 1.2s linear infinite;background-color:transparent;background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yD/r/t-wz8gw1xG1.png);background-repeat:no-repeat;background-position:50% 50%;height:24px;width:24px}@keyframes rotateSpinner{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.fb_iframe_widget{display:inline-block;position:relative}.fb_iframe_widget span{display:inline-block;position:relative;text-align:justify}.fb_iframe_widget iframe{position:absolute}.fb_iframe_widget_fluid_desktop,.fb_iframe_widget_fluid_desktop span,.fb_iframe_widget_fluid_desktop iframe{max-width:100%}.fb_iframe_widget_fluid_desktop iframe{min-width:220px;position:relative}.fb_iframe_widget_lift{z-index:1}.fb_hide_iframes iframe{position:relative;left:-10000px}.fb_iframe_widget_loader{position:relative;display:inline-block}.fb_iframe_widget_fluid{display:inline}.fb_iframe_widget_fluid span{width:100%}.fb_iframe_widget_loader iframe{min-height:32px;z-index:2;zoom:1}.fb_iframe_widget_loader .FB_Loader{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/y9/r/jKEcVPZFk-2.gif) no-repeat;height:32px;width:32px;margin-left:-16px;position:absolute;left:50%;z-index:4}</style></head><body class=" with-js"><noscript>&lt;iframe height="0" src="//www.googletagmanager.com/ns.html?id=GTM-TBQWPN" style="display:none;visibility:hidden" width="0"&gt;&lt;/iframe&gt;</noscript><script src="./PythonでFXシストレのバックテスト(1) - Qiita_files/cb=gapi.loaded_1" async=""></script><script src="./PythonでFXシストレのバックテスト(1) - Qiita_files/cb=gapi.loaded_0" async=""></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/gtm.js(2).ダウンロード"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/analytics.js.ダウンロード"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/52738645.js.ダウンロード" id="optimizely-jssdk"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/ga.js.ダウンロード" id="google-analytics-jssdk"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/widgets.js.ダウンロード" id="twitter-jssdk"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/all.js.ダウンロード" id="facebook-jssdk"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/plusone.js.ダウンロード" id="google-plusone-jssdk" gapi_processed="true"></script><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/btn.js.ダウンロード" id="pocket-btn-js"></script><script src="./PythonでFXシストレのバックテスト(1) - Qiita_files/ca-pub-8127218772604357.js.ダウンロード"></script><script>
+  document.body.className = document.body.className.replace('without-js', '') + ' with-js';
+  window.Qiita = {"asset_host":"cdn.qiita.com","TLD":"com","controller_path":"public/items","controller_action":"public/items#show","controller":"items","action":"show","env":"production","flash":{},"is_landing_page":false,"is_team_page":false,"root_domain":"qiita.com","variant":null,"config":{"mixpanel":{"career":"dd35af27e959781713d63fd7ca898a8d","per_team":"c0a2116368b33b44b5029ebd2cc9b094","public":"be87616606b0e26a87689099aab2c4e5","team":"b7c0342acba2dbc8742484d98788efb3"},"default_locale":"ja","locale":"ja"},"team":null,"user":null,"GIT_BRANCH":null,"DEBUG":false};
+
+</script>
+<div class="headerContainer headerContainer-public" role="navigation"><div data-react-class="T.HeaderContainer" data-react-props="{&quot;user&quot;:null,&quot;team&quot;:null,&quot;news&quot;:{&quot;type&quot;:&quot;News&quot;,&quot;content&quot;:&quot;ストックの他に「いいね」が追加されました&quot;,&quot;url&quot;:&quot;http://blog.qiita.com/post/153200849029/qiita-like-button&quot;},&quot;initial_unread_count&quot;:null,&quot;siteid_image&quot;:&quot;http://cdn.qiita.com/siteid-reverse.png&quot;,&quot;is_team_page&quot;:false,&quot;on_team_setting&quot;:false,&quot;show_post_menu&quot;:true,&quot;show_search_menu&quot;:true,&quot;is_fluid&quot;:false,&quot;locale&quot;:&quot;ja&quot;}"><header data-reactroot="" class="sharedHeader sharedHeader-public"><div class="sharedHeader_inner"><div class="sharedHeader_left"><span class="sharedHeader_logo open"><a class="sharedHeader_logo_main" href="http://qiita.com/"><span class="sharedHeader_logo_figure"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 26"><title>Qiita</title><path d="M24.6 12.2C24.6 6.2 20 0 12.2 0 6.2 0 0 4.6 0 12.4c0 6 4.6 12.2 12.4 12.2 2.5 0 5-.8 7.1-2.3l3.6 3.6 1.6-1.6-3.4-3.4c2.1-2.3 3.3-5.3 3.3-8.7zm-12.4-10c5.7 0 10.2 4.4 10.2 10.1 0 4.9-3.8 10.1-10.1 10.1s-10.1-5.1-10.1-10c0-6.4 5.1-10.2 10-10.2zM30.5 7.1h2.1v17h-2.1zM31.5 4.8c-1 0-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8 1.8.8 1.8 1.8-.8 1.8-1.8 1.8zM40 4.8c-1 0-1.8-.8-1.8-1.8S39 1.2 40 1.2s1.8.8 1.8 1.8S41 4.8 40 4.8zM39 7.1h2.1v17H39zM53.7 24.4c-3.9 0-6.2-3-6.2-6v-16h2.1v4.7H57v2.1h-7.4v9.3c0 1.9 1.5 3.9 4.1 3.9.7 0 1.4-.2 2-.6l.2-.1 1 1.8-.2.1c-.9.5-2 .8-3 .8zM67.6 24.5c-5.7 0-9.1-4.5-9.1-8.9 0-5.7 4.5-9.1 8.9-9.1 2.3 0 4.1.8 5.4 2.3V7.1h2.1v17h-2.1v-1.9c-1.2 1.5-3 2.3-5.2 2.3zm-.2-15.9c-3.4 0-6.8 2.6-6.8 7 0 3.4 2.6 6.8 7 6.8 2 0 4-.9 5.3-2.5v-8.8c-1.4-1.6-3.3-2.5-5.5-2.5z"></path></svg></span></a></span><form class="navbar-form navbar-left searchForm" action="http://qiita.com/search" method="get"><div class="searchForm_queryWrapper"><input class="form-control searchForm_query" placeholder="キーワードを入力" autocomplete="off" name="q" value=""><div class="searchForm_wiseSearchButton"><i class="fa fa-caret-down"></i></div></div></form><div class="navbar-text headerNews hidden-xs hidden-sm"><div class="headerNews_label label label-warning">News</div><a class="navbar-link" target="_blank" href="http://blog.qiita.com/post/153200849029/qiita-like-button">ストックの他に「いいね」が追加されました</a></div></div><div class="sharedHeader_right"><div class="sharedHeader_registerUser"><a class="btn btn-warning navbar-btn navbar-right" href="http://qiita.com/signup?redirect_to=%2Ftoyolab%2Fitems%2Fe8292d2f051a88517cb2">ユーザ登録</a></div><div class="sharedHeader_loginUser"><a data-label="LoginButtonAtNavbar" href="http://qiita.com/login?redirect_to=%2Ftoyolab%2Fitems%2Fe8292d2f051a88517cb2">ログイン</a></div></div></div></header></div></div><div id="main"><ol class="itemBreadcrumbs" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://qiita.com/"><span itemprop="name">Qiita</span></a><meta content="1" itemprop="position"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://qiita.com/items"><span itemprop="name">投稿</span></a><meta content="2" itemprop="position"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="http://qiita.com/tags/Python"><span itemprop="name">Python</span></a><meta content="3" itemprop="position"></li></ol><article itemscope="" itemtype="http://schema.org/Article"><div class="ArticleMainHeader "><div class="container"></div><div class="container"><div class="row s-flex-align-center"><div class="col-sm-9"><h1 class="ArticleMainHeader__title">PythonでFXシストレのバックテスト(1)</h1><ul class="list-unstyled list-inline itemsShowHeaderTags"><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/Python"><img alt="Python" class="tagIcon_img" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/medium.jpg"><div class="tagIcon_name">Python</div><div class="tagIcon_count">8846</div></a></div></li><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/%E3%83%86%E3%82%AF%E3%83%8B%E3%82%AB%E3%83%AB%E6%8C%87%E6%A8%99"><img alt="テクニカル指標" class="tagIcon_img" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/missing.png"><div class="tagIcon_name">テクニカル指標</div><div class="tagIcon_count">7</div></a></div></li><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/FX"><img alt="FX" class="tagIcon_img" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/missing.png"><div class="tagIcon_name">FX</div><div class="tagIcon_count">20</div></a></div></li><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/%E3%82%B7%E3%82%B9%E3%83%88%E3%83%AC"><img alt="シストレ" class="tagIcon_img" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/missing.png"><div class="tagIcon_name">シストレ</div><div class="tagIcon_count">8</div></a></div></li><li class="itemsShowHeaderTags_list"><div class="tagIcon"><a class="tagIcon_base" href="http://qiita.com/tags/%E3%83%90%E3%83%83%E3%82%AF%E3%83%86%E3%82%B9%E3%83%88"><img alt="バックテスト" class="tagIcon_img" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/missing.png"><div class="tagIcon_name">バックテスト</div><div class="tagIcon_count">2</div></a></div></li></ul></div><div class="col-sm-3"><div class="itemsShowHeaderStock"><ul class="list-unstyled itemsShowHeaderStock_statusList"><li><div class="itemsShowHeaderStock_count stock"><span class="fa fa-thumbs-up"></span><span class="js-likecount">51</span></div><div class="itemsShowHeaderStock_countText">いいね</div></li><li><div class="itemsShowHeaderStock_count" content="0 UserComments" itemprop="interactionCount"><span class="fa fa-comment"></span>0</div><div class="itemsShowHeaderStock_countText">コメント</div></li></ul></div><div class="js-likebutton" data-props="{&quot;like_status&quot;:false,&quot;like_count&quot;:51,&quot;uuid&quot;:&quot;e8292d2f051a88517cb2&quot;,&quot;likable_type&quot;:&quot;Article&quot;,&quot;position&quot;:&quot;article-header&quot;}"><div data-reactroot="" class="LikeButton"><button class="p-button"><span class="fa fa-fw fa-thumbs-up"></span><span>いいね</span></button></div></div><ul class="list-inline ArticleMainHeader__users"><li class="js-hovercard" data-hovercard-target-name="mofoolog"><a itemprop="url" href="http://qiita.com/mofoolog"><img alt="mofoolog" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473699355"></a></li><li class="js-hovercard" data-hovercard-target-name="saru999"><a itemprop="url" href="http://qiita.com/saru999"><img alt="saru999" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473690039"></a></li><li class="js-hovercard" data-hovercard-target-name="ytakky"><a itemprop="url" href="http://qiita.com/ytakky"><img alt="ytakky" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473695825"></a></li><li class="js-hovercard" data-hovercard-target-name="kyumon_shota"><a itemprop="url" href="http://qiita.com/kyumon_shota"><img alt="kyumon_shota" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473695880"></a></li><li class="js-hovercard" data-hovercard-target-name="1-AizawaSatoshi"><a itemprop="url" href="http://qiita.com/1-AizawaSatoshi"><img alt="1-AizawaSatoshi" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473707150"></a></li><li class="js-hovercard" data-hovercard-target-name="luminor"><a itemprop="url" href="http://qiita.com/luminor"><img alt="luminor" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473710819"></a></li><li class="js-hovercard" data-hovercard-target-name="ueno3"><a itemprop="url" href="http://qiita.com/ueno3"><img alt="ueno3" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473700135"></a></li><li class="js-hovercard" data-hovercard-target-name="edamabe"><a itemprop="url" href="http://qiita.com/edamabe"><img alt="edamabe" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473709652"></a></li><li class="js-hovercard" data-hovercard-target-name="555ryusuke"><a itemprop="url" href="http://qiita.com/555ryusuke"><img alt="555ryusuke" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473696681"></a></li><li class="js-hovercard" data-hovercard-target-name="TK8888"><a itemprop="url" href="http://qiita.com/TK8888"><img alt="TK8888" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473696337"></a></li><li><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/likers"><span class="fa fa-ellipsis-h"></span></a></li></ul></div></div></div></div><div class="ArticleAsideHeader"><div class="container"><div class="u-flex u-space-between"><div class="u-flex u-flex-wrap"><div class="u-flex u-align-center s-pdv-5 u-flex-wrap"><div class="ArticleAsideHeader__author"><a href="http://qiita.com/toyolab"><img class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473718172" alt="1473718172"></a> <a class="u-link-unstyled" href="http://qiita.com/toyolab">toyolab</a> </div><div class="ArticleAsideHeader__date"><span data-toggle="tooltip" title="" data-original-title="2016年07月09日に投稿"><time datetime="2016-10-11T17:17:06+09:00" itemprop="dateModified">2016年10月11日</time>に更新</span></div></div><div class="u-flex u-align-center s-pdv-5 mobile-hidden"><div class="ArticleAsideHeader__revision"> <a data-toggle="tooltip" title="" href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/revisions" data-original-title="編集履歴"><span class="fa fa-history"></span></a><span class="ArticleAsideHeader__revisionCount">6</span></div></div><div class="u-flex u-align-center s-pdv-5 mobile-hidden"></div></div><div class="u-flex u-align-center s-flex-justiry-between s-pdv-5 u-shrink-0"><div class="ArticleAsideHeader__stock"><div class="js-stockButton StockButton" data-counter="" data-path="/toyolab/items/e8292d2f051a88517cb2" data-position="top" data-uuid="e8292d2f051a88517cb2"><form class="button_to" method="post" action="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/stock"><button class="StockButton__stock" type="submit"><div class="fa-stack fa-lg"><span class="fa fa-folder-open fa-stack-1x unstock"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="></form><form class="button_to" method="post" action="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/unstock"><button class="StockButton__unstock" data-toggle="tooltip" title="" type="submit" data-original-title="ストック済み"><div class="fa-stack fa-lg"><span class="fa fa-folder fa-stack-1x"></span><span class="fa fa-check fa-stack-1x fa-inverse"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="></form></div></div><div class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#"><span class="fa fa-ellipsis-h fa-lg"></span></a><ul class="dropdown-menu dropdown-menu-right"><li class="dropdown__item--mobile"><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/revisions"><span class="fa fa-fw fa-history"></span> 編集履歴<span>(6)</span></a></li><li><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2.md"><span class="fa fa-fw fa-file-text-o"></span> Markdownで本文を見る</a></li><li><a data-target=".js-report-form" data-toggle="modal" href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#"><span class="fa fa-fw fa-flag"></span> 問題がある投稿を報告する</a></li></ul></div></div></div></div></div><div class="container"><div class="row" id="article-body-wrapper" style="position: relative;"><div class="col-sm-9"><section class="markdownContent markdownContent-headingEnabled js-task-list-container clearfix position-relative" id="item-e8292d2f051a88517cb2" itemprop="articleBody">
+<h1>
+<span id="はじめに" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB"><i class="fa fa-link"></i></a>はじめに</h1>
+
+<p>Pythonでシストレのバックテストをするライブラリってたくさんあるのですが、MetaTraderから入った人にとってはわかりにくいので、Pythonの練習がてらバックテストのためのコードを書いてみました。</p>
+
+<p><a href="http://forex.toyolab.com/?p=631" rel="nofollow noopener" target="_blank">Pythonでシストレのバックテスト</a></p>
+
+<p>ただ、最初のバージョンは、まず動くことを第一に書いたので、結構無駄があったり、実行速度が遅かったりしたので、今回、ちょっと改良してみました。</p>
+
+<h1>
+<span id="fxヒストリカルデータの取得" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#fx%E3%83%92%E3%82%B9%E3%83%88%E3%83%AA%E3%82%AB%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E3%81%AE%E5%8F%96%E5%BE%97"><i class="fa fa-link"></i></a>FXヒストリカルデータの取得</h1>
+
+<p>株価だと、Yahoo!とかから直接ダウンロードして使えるものも多いのですが、FXだと5分足とか15分足とか複数のタイムフレームのデータを使うこともあるので、基本のデータとして1分足データが欲しいところです。</p>
+
+<p>そうなると、データも大きいので、予めダウンロードしたデータを読み込む方が都合がいいかと思います。ここではサンプルデータとして以下のサイトからダウンロードしておきます。</p>
+
+<p><a href="http://www.histdata.com/" rel="nofollow noopener" target="_blank">HistData.com</a></p>
+
+<p>同じデータでもいくつかの形式があるのですが、pandasの関数を使う関係で、Generic ASCIIの形式のデータをダウンロードしておきます。</p>
+
+<p>では、ダウンロードしたEUR/USDの2015年分の1分足データ'DAT_ASCII_EURUSD_M1_2015.csv'をpandasの関数で読み込んでみます。ただ、このままだと週明けの相場が日曜日から始まってしまうので、7時間だけ遅らせて、月曜日の0時から始めるようにします。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="n">dataM1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'DAT_ASCII_EURUSD_M1_2015.csv'</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">';'</span><span class="p">,</span>
+                     <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s">'Time'</span><span class="p">,</span><span class="s">'Open'</span><span class="p">,</span><span class="s">'High'</span><span class="p">,</span><span class="s">'Low'</span><span class="p">,</span><span class="s">'Close'</span><span class="p">,</span> <span class="s">''</span><span class="p">),</span>
+                     <span class="n">index_col</span><span class="o">=</span><span class="s">'Time'</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">dataM1</span><span class="o">.</span><span class="n">index</span> <span class="o">+=</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">Hour</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span> <span class="c">#7時間のオフセット</span>
+</pre></div></div>
+
+<h1>
+<span id="任意のタイムフレームデータの作成" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E4%BB%BB%E6%84%8F%E3%81%AE%E3%82%BF%E3%82%A4%E3%83%A0%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0%E3%83%87%E3%83%BC%E3%82%BF%E3%81%AE%E4%BD%9C%E6%88%90"><i class="fa fa-link"></i></a>任意のタイムフレームデータの作成</h1>
+
+<p>次に1分足のデータから任意のタイムフレームのデータを作成します。ここでもpandasの<code>resample()</code>, <code>ohlc()</code>という関数を使えば簡単にできます。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="c"># dfのデータからtfで指定するタイムフレームの4本足データを作成する関数</span>
+<span class="k">def</span> <span class="nf">TF_ohlc</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">tf</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span><span class="o">.</span><span class="n">ohlc</span><span class="p">()</span>
+    <span class="n">O</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s">'Open'</span><span class="p">][</span><span class="s">'open'</span><span class="p">]</span>
+    <span class="n">H</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s">'High'</span><span class="p">][</span><span class="s">'high'</span><span class="p">]</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s">'Low'</span><span class="p">][</span><span class="s">'low'</span><span class="p">]</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s">'Close'</span><span class="p">][</span><span class="s">'close'</span><span class="p">]</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'Open'</span><span class="p">:</span> <span class="n">O</span><span class="p">,</span> <span class="s">'High'</span><span class="p">:</span> <span class="n">H</span><span class="p">,</span> <span class="s">'Low'</span><span class="p">:</span> <span class="n">L</span><span class="p">,</span> <span class="s">'Close'</span><span class="p">:</span> <span class="n">C</span><span class="p">},</span>
+                       <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">'Open'</span><span class="p">,</span><span class="s">'High'</span><span class="p">,</span><span class="s">'Low'</span><span class="p">,</span><span class="s">'Close'</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+<span class="n">ohlc</span> <span class="o">=</span> <span class="n">TF_ohlc</span><span class="p">(</span><span class="n">dataM1</span><span class="p">,</span> <span class="s">'H'</span><span class="p">)</span> <span class="c">#１時間足データの作成</span>
+</pre></div></div>
+
+<p><code>tf</code>に指定するキーワードは、</p>
+
+<ul>
+<li>分 - <code>'T'</code>
+</li>
+<li>時 - <code>'H'</code>
+</li>
+<li>日 - <code>'D'</code>
+</li>
+<li>週 - <code>'W'</code>
+</li>
+<li>月 - <code>'M'</code>
+</li>
+</ul>
+
+<p>で、15分の場合、<code>'15T'</code>と書けばいいです。これで、何分足のデータでも作ることができます。ここでは、1時間足のデータを作ってみました。</p>
+
+<h1>
+<span id="テクニカル指標の作成" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%86%E3%82%AF%E3%83%8B%E3%82%AB%E3%83%AB%E6%8C%87%E6%A8%99%E3%81%AE%E4%BD%9C%E6%88%90"><i class="fa fa-link"></i></a>テクニカル指標の作成</h1>
+
+<p>シストレの売買ルールで使うテクニカル指標は<a href="https://github.com/toyolab/MT5IndicatorsPy" rel="nofollow noopener" target="_blank">GitHub</a>に作ってあります。indicators.pyだけ取ってくれば使えます。ソースコードは省略しますが、内部の繰り返しでpandas使わないようにしたり、Numbaを使ったりしたので、極端に時間のかかる関数はなくなったと思います。<del>ただし、アルゴリズムの関係でパラボリックSARは多少時間がかかります。</del></p>
+
+<p>例えば、10バーの移動平均と30バーの移動平均は以下のように書けます。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">indicators</span> <span class="kn">as</span> <span class="nn">ind</span> <span class="c">#indicators.pyのインポート</span>
+<span class="n">FastMA</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">iMA</span><span class="p">(</span><span class="n">ohlc</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="c">#短期移動平均</span>
+<span class="n">SlowMA</span> <span class="o">=</span> <span class="n">ind</span><span class="o">.</span><span class="n">iMA</span><span class="p">(</span><span class="n">ohlc</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span> <span class="c">#長期移動平均</span>
+</pre></div></div>
+
+<h1>
+<span id="テクニカル指標の表示" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%86%E3%82%AF%E3%83%8B%E3%82%AB%E3%83%AB%E6%8C%87%E6%A8%99%E3%81%AE%E8%A1%A8%E7%A4%BA"><i class="fa fa-link"></i></a>テクニカル指標の表示</h1>
+
+<p>作成したテクニカル指標をチャートに表示させるのに、pandasのplot関数でもいいのですが、拡大縮小したいこともあるので、相場関係のサイトでよく見かける<a href="http://www.highcharts.com/" rel="nofollow noopener" target="_blank">HighCharts</a>に表示させるPythonのライブラリを使ってみます。</p>
+
+<p>ここでは、簡単にインストールできた<a href="https://github.com/gtnx/pandas-highcharts" rel="nofollow noopener" target="_blank">pandas-highcharts</a>を使ってみます。</p>
+
+<p>インストールは、</p>
+
+<div class="code-frame" data-lang="text"><div class="highlight"><pre>pip install pandas-highcharts
+</pre></div></div>
+
+<p>でOKです。FXの終値と２本の移動平均を表示させるコードは以下のようになります。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pandas_highcharts.display</span> <span class="kn">import</span> <span class="n">display_charts</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'Close'</span><span class="p">:</span> <span class="n">ohlc</span><span class="p">[</span><span class="s">'Close'</span><span class="p">],</span> <span class="s">'FastMA'</span><span class="p">:</span> <span class="n">FastMA</span><span class="p">,</span> <span class="s">'SlowMA'</span><span class="p">:</span> <span class="n">SlowMA</span><span class="p">})</span>
+<span class="n">display_charts</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">chart_type</span><span class="o">=</span><span class="s">"stock"</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">"MA cross"</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">640</span><span class="p">,</span><span class="mi">480</span><span class="p">),</span> <span class="n">grid</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div></div>
+
+<p>これを実行するとこんなチャートが表示されます。</p>
+
+<p><a href="./PythonでFXシストレのバックテスト(1) - Qiita_files/db0a3afd-c2f5-fcd2-d84a-46320610148a.png" target="_blank" rel="nofollow noopener"><img src="./PythonでFXシストレのバックテスト(1) - Qiita_files/db0a3afd-c2f5-fcd2-d84a-46320610148a.png" alt="chart_y.png"></a></p>
+
+<p>１年分を表示させると移動平均がほとんど重なって見えないので、適当にズームすると、こんな感じになり、移動平均の違いが見えるようになります。</p>
+
+<p><a href="./PythonでFXシストレのバックテスト(1) - Qiita_files/1c6f7853-aa1c-7b3e-3f02-270a192edffb.png" target="_blank" rel="nofollow noopener"><img src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1c6f7853-aa1c-7b3e-3f02-270a192edffb.png" alt="chart_m.png"></a></p>
+
+<p>なかなか便利です。</p>
+
+<h1>
+<span id="移動平均交差システムの売買ルール" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E7%A7%BB%E5%8B%95%E5%B9%B3%E5%9D%87%E4%BA%A4%E5%B7%AE%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E5%A3%B2%E8%B2%B7%E3%83%AB%E3%83%BC%E3%83%AB"><i class="fa fa-link"></i></a>移動平均交差システムの売買ルール</h1>
+
+<p>売買システムの一例として、定番の移動平均の交差システムを取り上げます。売買ルールは、</p>
+
+<ul>
+<li>買いシグナル - 短期移動平均線が長期移動平均線を上抜ける</li>
+<li>売りシグナル - 短期移動平均線が長期移動平均線を下抜ける</li>
+</ul>
+
+<p>という単純なものです。このシグナルはエントリーのシグナルで、ポジションを決済するためのエグジットシグナルは、買いエグジットは売りエントリーと同じ、売りエグジットは買いエントリー同じものとします。いわゆる途転売買です。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="c">#買いエントリーシグナル</span>
+<span class="n">BuyEntry</span> <span class="o">=</span> <span class="p">((</span><span class="n">FastMA</span> <span class="o">&gt;</span> <span class="n">SlowMA</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">FastMA</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">SlowMA</span><span class="o">.</span><span class="n">shift</span><span class="p">()))</span><span class="o">.</span><span class="n">values</span>
+<span class="c">#売りエントリーシグナル</span>
+<span class="n">SellEntry</span> <span class="o">=</span> <span class="p">((</span><span class="n">FastMA</span> <span class="o">&lt;</span> <span class="n">SlowMA</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">FastMA</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">SlowMA</span><span class="o">.</span><span class="n">shift</span><span class="p">()))</span><span class="o">.</span><span class="n">values</span>
+<span class="c">#買いエグジットシグナル</span>
+<span class="n">BuyExit</span> <span class="o">=</span> <span class="n">SellEntry</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="c">#売りエグジットシグナル</span>
+<span class="n">SellExit</span> <span class="o">=</span> <span class="n">BuyEntry</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div></div>
+
+<p>ここでは、それぞれのシグナルがnumpyのbool型の配列になっています。普通に考えると、時系列データを回しながらシグナルの判別をするところでしょうが、Pythonの場合、配列でまとめて処理した方が速いので、シグナルを配列に入れておきます。</p>
+
+<h1>
+<span id="バックテストの実行" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%90%E3%83%83%E3%82%AF%E3%83%86%E3%82%B9%E3%83%88%E3%81%AE%E5%AE%9F%E8%A1%8C"><i class="fa fa-link"></i></a>バックテストの実行</h1>
+
+<p>いよいよバックテストを行います。ヒストリカルデータと、上記の売買シグナルを入力して、実際に売買した価格と損益を時系列データとして出力させます。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="k">def</span> <span class="nf">Backtest</span><span class="p">(</span><span class="n">ohlc</span><span class="p">,</span> <span class="n">BuyEntry</span><span class="p">,</span> <span class="n">SellEntry</span><span class="p">,</span> <span class="n">BuyExit</span><span class="p">,</span> <span class="n">SellExit</span><span class="p">,</span> <span class="n">lots</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">spread</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">Open</span> <span class="o">=</span> <span class="n">ohlc</span><span class="p">[</span><span class="s">'Open'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="c">#始値</span>
+    <span class="n">Point</span> <span class="o">=</span> <span class="mf">0.0001</span> <span class="c">#1pipの値</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Open</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">):</span> <span class="n">Point</span> <span class="o">=</span> <span class="mf">0.01</span> <span class="c">#クロス円の1pipの値</span>
+    <span class="n">Spread</span> <span class="o">=</span> <span class="n">spread</span><span class="o">*</span><span class="n">Point</span> <span class="c">#スプレッド</span>
+    <span class="n">Lots</span> <span class="o">=</span> <span class="n">lots</span><span class="o">*</span><span class="mi">100000</span> <span class="c">#実際の売買量</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ohlc</span><span class="p">)</span> <span class="c">#FXデータのサイズ</span>
+    <span class="n">BuyExit</span><span class="p">[</span><span class="n">N</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">SellExit</span><span class="p">[</span><span class="n">N</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span> <span class="c">#最後に強制エグジット</span>
+    <span class="n">BuyPrice</span> <span class="o">=</span> <span class="n">SellPrice</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c"># 売買価格</span>
+
+    <span class="n">LongTrade</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="c"># 買いトレード情報</span>
+    <span class="n">ShortTrade</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="c"># 売りトレード情報</span>
+
+    <span class="n">LongPL</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="c"># 買いポジションの損益</span>
+    <span class="n">ShortPL</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="c"># 売りポジションの損益</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">N</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">BuyEntry</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">BuyPrice</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c">#買いエントリーシグナル</span>
+            <span class="n">BuyPrice</span> <span class="o">=</span> <span class="n">Open</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">Spread</span>
+            <span class="n">LongTrade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">BuyPrice</span> <span class="c">#買いポジションオープン</span>
+        <span class="k">elif</span> <span class="n">BuyExit</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">BuyPrice</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="c">#買いエグジットシグナル</span>
+            <span class="n">ClosePrice</span> <span class="o">=</span> <span class="n">Open</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">LongTrade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">ClosePrice</span> <span class="c">#買いポジションクローズ</span>
+            <span class="n">LongPL</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ClosePrice</span><span class="o">-</span><span class="n">BuyPrice</span><span class="p">)</span><span class="o">*</span><span class="n">Lots</span> <span class="c">#損益確定</span>
+            <span class="n">BuyPrice</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">SellEntry</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">SellPrice</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c">#売りエントリーシグナル</span>
+            <span class="n">SellPrice</span> <span class="o">=</span> <span class="n">Open</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ShortTrade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">SellPrice</span> <span class="c">#売りポジションオープン</span>
+        <span class="k">elif</span> <span class="n">SellExit</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">SellPrice</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="c">#売りエグジットシグナル</span>
+            <span class="n">ClosePrice</span> <span class="o">=</span> <span class="n">Open</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">Spread</span>
+            <span class="n">ShortTrade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">ClosePrice</span> <span class="c">#売りポジションクローズ</span>
+            <span class="n">ShortPL</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">SellPrice</span><span class="o">-</span><span class="n">ClosePrice</span><span class="p">)</span><span class="o">*</span><span class="n">Lots</span> <span class="c">#損益確定</span>
+            <span class="n">SellPrice</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'Long'</span><span class="p">:</span><span class="n">LongTrade</span><span class="p">,</span> <span class="s">'Short'</span><span class="p">:</span><span class="n">ShortTrade</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">ohlc</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>\
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'Long'</span><span class="p">:</span><span class="n">LongPL</span><span class="p">,</span> <span class="s">'Short'</span><span class="p">:</span><span class="n">ShortPL</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">ohlc</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="n">Trade</span><span class="p">,</span> <span class="n">PL</span> <span class="o">=</span> <span class="n">Backtest</span><span class="p">(</span><span class="n">ohlc</span><span class="p">,</span> <span class="n">BuyEntry</span><span class="p">,</span> <span class="n">SellEntry</span><span class="p">,</span> <span class="n">BuyExit</span><span class="p">,</span> <span class="n">SellExit</span><span class="p">)</span>
+</pre></div></div>
+
+<p>前のバージョンでは、この部分を何段階かに分けていたのですが、今回はまとめてみました。本来ならシグナルだけでトレードできればいいのですが、ポジションがあってもシグナルが出るケースもあるので、ポジションの有無もチェックする形にしました。</p>
+
+<p>この関数の出力のうち、<code>Trade</code>には、買いと売りそれぞれに、売買価格をプラスの値、決済価格をマイナスの値で格納してあります。<code>PL</code>には、決済時点での実現損益が格納してあります。</p>
+
+<h1>
+<span id="売買システムの評価" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E5%A3%B2%E8%B2%B7%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E8%A9%95%E4%BE%A1"><i class="fa fa-link"></i></a>売買システムの評価</h1>
+
+<p><code>Trade</code>と<code>PL</code>の情報があれば、売買システムのだいたいの評価ができます。例えばこんな感じです。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="k">def</span> <span class="nf">BacktestReport</span><span class="p">(</span><span class="n">Trade</span><span class="p">,</span> <span class="n">PL</span><span class="p">):</span>
+    <span class="n">LongPL</span> <span class="o">=</span> <span class="n">PL</span><span class="p">[</span><span class="s">'Long'</span><span class="p">]</span>
+    <span class="n">LongTrades</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">Trade</span><span class="p">[</span><span class="s">'Long'</span><span class="p">])</span><span class="o">//</span><span class="mi">2</span>
+    <span class="n">LongWinTrades</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">LongPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">LongLoseTrades</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">LongPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'買いトレード数 ='</span><span class="p">,</span> <span class="n">LongTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'勝トレード数 ='</span><span class="p">,</span> <span class="n">LongWinTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'最大勝トレード ='</span><span class="p">,</span> <span class="n">LongPL</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'平均勝トレード ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">LongPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">LongWinTrades</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'負トレード数 ='</span><span class="p">,</span> <span class="n">LongLoseTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'最大負トレード ='</span><span class="p">,</span> <span class="n">LongPL</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'平均負トレード ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">LongPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">LongLoseTrades</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'勝率 ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">LongWinTrades</span><span class="o">/</span><span class="n">LongTrades</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s">'%</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+
+    <span class="n">ShortPL</span> <span class="o">=</span> <span class="n">PL</span><span class="p">[</span><span class="s">'Short'</span><span class="p">]</span>
+    <span class="n">ShortTrades</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">Trade</span><span class="p">[</span><span class="s">'Short'</span><span class="p">])</span><span class="o">//</span><span class="mi">2</span>
+    <span class="n">ShortWinTrades</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">ShortLoseTrades</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'売りトレード数 ='</span><span class="p">,</span> <span class="n">ShortTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'勝トレード数 ='</span><span class="p">,</span> <span class="n">ShortWinTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'最大勝トレード ='</span><span class="p">,</span> <span class="n">ShortPL</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'平均勝トレード ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">ShortWinTrades</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'負トレード数 ='</span><span class="p">,</span> <span class="n">ShortLoseTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'最大負トレード ='</span><span class="p">,</span> <span class="n">ShortPL</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'平均負トレード ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">ShortLoseTrades</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'勝率 ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">ShortWinTrades</span><span class="o">/</span><span class="n">ShortTrades</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s">'%</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+
+    <span class="n">Trades</span> <span class="o">=</span> <span class="n">LongTrades</span> <span class="o">+</span> <span class="n">ShortTrades</span>
+    <span class="n">WinTrades</span> <span class="o">=</span> <span class="n">LongWinTrades</span><span class="o">+</span><span class="n">ShortWinTrades</span>
+    <span class="n">LoseTrades</span> <span class="o">=</span> <span class="n">LongLoseTrades</span><span class="o">+</span><span class="n">ShortLoseTrades</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'総トレード数 ='</span><span class="p">,</span> <span class="n">Trades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'勝トレード数 ='</span><span class="p">,</span> <span class="n">WinTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'最大勝トレード ='</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">LongPL</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">ShortPL</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'平均勝トレード ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">((</span><span class="n">LongPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">+</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">/</span><span class="n">WinTrades</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'負トレード数 ='</span><span class="p">,</span> <span class="n">LoseTrades</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'最大負トレード ='</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">LongPL</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">ShortPL</span><span class="o">.</span><span class="n">min</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'平均負トレード ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">((</span><span class="n">LongPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">+</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">/</span><span class="n">LoseTrades</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'勝率 ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">WinTrades</span><span class="o">/</span><span class="n">Trades</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s">'%</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+
+    <span class="n">GrossProfit</span> <span class="o">=</span> <span class="n">LongPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">+</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_lower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">GrossLoss</span> <span class="o">=</span> <span class="n">LongPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">+</span><span class="n">ShortPL</span><span class="o">.</span><span class="n">clip_upper</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">Profit</span> <span class="o">=</span> <span class="n">GrossProfit</span><span class="o">+</span><span class="n">GrossLoss</span>
+    <span class="n">Equity</span> <span class="o">=</span> <span class="p">(</span><span class="n">LongPL</span><span class="o">+</span><span class="n">ShortPL</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+    <span class="n">MDD</span> <span class="o">=</span> <span class="p">(</span><span class="n">Equity</span><span class="o">.</span><span class="n">cummax</span><span class="p">()</span><span class="o">-</span><span class="n">Equity</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'総利益 ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">GrossProfit</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'総損失 ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">GrossLoss</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'総損益 ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">Profit</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'プロフィットファクター ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="o">-</span><span class="n">GrossProfit</span><span class="o">/</span><span class="n">GrossLoss</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'平均損益 ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">Profit</span><span class="o">/</span><span class="n">Trades</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'最大ドローダウン ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">MDD</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'リカバリーファクター ='</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">Profit</span><span class="o">/</span><span class="n">MDD</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">Equity</span>
+<span class="n">Equity</span> <span class="o">=</span> <span class="n">BacktestReport</span><span class="p">(</span><span class="n">Trade</span><span class="p">,</span> <span class="n">PL</span><span class="p">)</span>
+</pre></div></div>
+
+<div class="code-frame" data-lang="text"><div class="highlight"><pre>買いトレード数 = 113
+勝トレード数 = 39
+最大勝トレード = 440.4
+平均勝トレード = 82.57
+負トレード数 = 74
+最大負トレード = -169.4
+平均負トレード = -43.89
+勝率 = 34.51 %
+
+売りトレード数 = 113
+勝トレード数 = 49
+最大勝トレード = 327.6
+平均勝トレード = 78.71
+負トレード数 = 64
+最大負トレード = -238.5
+平均負トレード = -43.85
+勝率 = 43.36 %
+
+総トレード数 = 226
+勝トレード数 = 88
+最大勝トレード = 440.4
+平均勝トレード = 80.42
+負トレード数 = 138
+最大負トレード = -238.5
+平均負トレード = -43.87
+勝率 = 38.94 %
+
+総利益 = 7077.0
+総損失 = -6054.4
+総損益 = 1022.6
+プロフィットファクター = 1.17
+平均損益 = 4.52
+最大ドローダウン = 1125.4
+リカバリーファクター = 0.91
+</pre></div></div>
+
+<p>ここでは、各項目を表示させていますが、機械学習や最適化を行う場合には、評価値のみを計算させるようにすればよいでしょう。</p>
+
+<p>システムの評価として資産曲線を見たい場合も多いでしょう。上記の関数では、<code>Equity</code>として資産曲線を出力させているので、初期資産を加算してグラフにすると以下のようになります。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="n">Initial</span> <span class="o">=</span> <span class="mi">10000</span> <span class="c"># 初期資産</span>
+<span class="n">display_charts</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'Equity'</span><span class="p">:</span><span class="n">Equity</span><span class="o">+</span><span class="n">Initial</span><span class="p">}),</span> <span class="n">chart_type</span><span class="o">=</span><span class="s">"stock"</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">"資産曲線"</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">640</span><span class="p">,</span><span class="mi">480</span><span class="p">),</span> <span class="n">grid</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div></div>
+
+<p><a href="./PythonでFXシストレのバックテスト(1) - Qiita_files/6c6e6c1a-37cc-b54b-32ec-38a180c8c964.png" target="_blank" rel="nofollow noopener"><img src="./PythonでFXシストレのバックテスト(1) - Qiita_files/6c6e6c1a-37cc-b54b-32ec-38a180c8c964.png" alt="equity.png"></a></p>
+
+<h1>
+<span id="トレードチャートの表示" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%88%E3%83%AC%E3%83%BC%E3%83%89%E3%83%81%E3%83%A3%E3%83%BC%E3%83%88%E3%81%AE%E8%A1%A8%E7%A4%BA"><i class="fa fa-link"></i></a>トレードチャートの表示</h1>
+
+<p>最後に、チャート上のどこで売買したかを表示させてみます。売買したポイントのみを表示させてもいいのですが、HighChartsでの方法がわからないので、ポジションをオープンしたポイントとクローズしたポイントをラインで結んでみます。</p>
+
+<p>以下のようなコードで<code>Trade</code>情報からラインに変換してみます。</p>
+
+<div class="code-frame" data-lang="py"><div class="highlight"><pre><span class="k">def</span> <span class="nf">PositionLine</span><span class="p">(</span><span class="n">trade</span><span class="p">):</span>
+    <span class="n">PosPeriod</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#ポジションの期間</span>
+    <span class="n">Position</span> <span class="o">=</span> <span class="bp">False</span> <span class="c">#ポジションの有無</span>
+    <span class="n">Line</span> <span class="o">=</span> <span class="n">trade</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Line</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">trade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">Position</span> <span class="o">=</span> <span class="bp">True</span> 
+        <span class="k">elif</span> <span class="n">Position</span><span class="p">:</span> <span class="n">PosPeriod</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c"># ポジションの期間をカウント</span>
+        <span class="k">if</span> <span class="n">trade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">PosPeriod</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">Line</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">trade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">Line</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">Line</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="n">PosPeriod</span><span class="p">])</span><span class="o">/</span><span class="n">PosPeriod</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="o">-</span><span class="n">PosPeriod</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">Line</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">Line</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">diff</span> <span class="c"># ポジションの期間を補間</span>
+                <span class="n">PosPeriod</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">Position</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">trade</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">Position</span><span class="p">:</span> <span class="n">Line</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s">'NaN'</span>
+    <span class="k">return</span> <span class="n">Line</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'Open'</span><span class="p">:</span> <span class="n">ohlc</span><span class="p">[</span><span class="s">'Open'</span><span class="p">],</span>
+                   <span class="s">'Long'</span><span class="p">:</span> <span class="n">PositionLine</span><span class="p">(</span><span class="n">Trade</span><span class="p">[</span><span class="s">'Long'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+                   <span class="s">'Short'</span><span class="p">:</span> <span class="n">PositionLine</span><span class="p">(</span><span class="n">Trade</span><span class="p">[</span><span class="s">'Short'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)})</span>
+<span class="n">display_charts</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">chart_type</span><span class="o">=</span><span class="s">"stock"</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">"トレードチャート"</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">640</span><span class="p">,</span><span class="mi">480</span><span class="p">),</span> <span class="n">grid</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div></div>
+
+<p>同じようにHighChartsに表示されるので、適当にズームしてみます。</p>
+
+<p><a href="./PythonでFXシストレのバックテスト(1) - Qiita_files/8acb23aa-89a2-cee4-9da7-3b60ecd73e2e.png" target="_blank" rel="nofollow noopener"><img src="./PythonでFXシストレのバックテスト(1) - Qiita_files/8acb23aa-89a2-cee4-9da7-3b60ecd73e2e.png" alt="trade.png"></a></p>
+
+<p>途転売買のシステムなので、LongポジションとShortポジションが交互に出てくることがわかります。</p>
+
+<h1>
+<span id="まとめ" class="fragment"></span><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%81%BE%E3%81%A8%E3%82%81"><i class="fa fa-link"></i></a>まとめ</h1>
+
+<p>売買ルールがテクニカル指標だけで記述できるようなシステムのバックテストを行うコードをPythonで書いてみました。PythonからHighChartsにグラフ表示できるライブラリはなかなか便利でした。まだまだ改善の余地はあるので、気が向いたら続きを書きたいと思います。</p>
+
+<p>続きはこちらです。<br>
+<a href="http://qiita.com/toyolab/items/8fe0f05cc28af29a9ad9" id="reference-401e13b5a45248b393ff">PythonでFXシストレのバックテスト(2)</a></p>
+
+<p>なお、本記事で掲載したコードは以下にアップロードしてあります。<br>
+<a href="https://nbviewer.jupyter.org/github/toyolab/MT5IndicatorsPy/blob/master/EA_sample.ipynb" rel="nofollow noopener" target="_blank">MT5IndicatorsPy/EA_sample.ipynb</a></p>
+<div class="hidden"><form class="js-task-list-update" action="http://qiita.com/toyolab/items/e8292d2f051a88517cb2" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓"><input type="hidden" name="_method" value="patch"><input type="hidden" name="authenticity_token" value="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="><input type="hidden" name="updated_at_confirmation_in_unixtime" id="updated_at_confirmation_in_unixtime" value="1476173826" class="js-task-list-updated-at"><textarea name="raw_body" id="raw_body" class="js-task-list-field"># はじめに
+Pythonでシストレのバックテストをするライブラリってたくさんあるのですが、MetaTraderから入った人にとってはわかりにくいので、Pythonの練習がてらバックテストのためのコードを書いてみました。
+
+[Pythonでシストレのバックテスト](http://forex.toyolab.com/?p=631)
+
+ただ、最初のバージョンは、まず動くことを第一に書いたので、結構無駄があったり、実行速度が遅かったりしたので、今回、ちょっと改良してみました。
+
+# FXヒストリカルデータの取得
+株価だと、Yahoo!とかから直接ダウンロードして使えるものも多いのですが、FXだと5分足とか15分足とか複数のタイムフレームのデータを使うこともあるので、基本のデータとして1分足データが欲しいところです。
+
+そうなると、データも大きいので、予めダウンロードしたデータを読み込む方が都合がいいかと思います。ここではサンプルデータとして以下のサイトからダウンロードしておきます。
+
+[HistData.com](http://www.histdata.com/)
+
+同じデータでもいくつかの形式があるのですが、pandasの関数を使う関係で、Generic ASCIIの形式のデータをダウンロードしておきます。
+
+では、ダウンロードしたEUR/USDの2015年分の1分足データ'DAT_ASCII_EURUSD_M1_2015.csv'をpandasの関数で読み込んでみます。ただ、このままだと週明けの相場が日曜日から始まってしまうので、7時間だけ遅らせて、月曜日の0時から始めるようにします。
+
+````py
+import numpy as np
+import pandas as pd
+
+dataM1 = pd.read_csv('DAT_ASCII_EURUSD_M1_2015.csv', sep=';',
+                     names=('Time','Open','High','Low','Close', ''),
+                     index_col='Time', parse_dates=True)
+dataM1.index += pd.offsets.Hour(7) #7時間のオフセット
+````
+
+# 任意のタイムフレームデータの作成
+次に1分足のデータから任意のタイムフレームのデータを作成します。ここでもpandasの`resample()`, `ohlc()`という関数を使えば簡単にできます。
+
+````py
+# dfのデータからtfで指定するタイムフレームの4本足データを作成する関数
+def TF_ohlc(df, tf):
+    x = df.resample(tf).ohlc()
+    O = x['Open']['open']
+    H = x['High']['high']
+    L = x['Low']['low']
+    C = x['Close']['close']
+    ret = pd.DataFrame({'Open': O, 'High': H, 'Low': L, 'Close': C},
+                       columns=['Open','High','Low','Close'])
+    return ret.dropna()
+
+ohlc = TF_ohlc(dataM1, 'H') #１時間足データの作成
+`````
+
+`tf`に指定するキーワードは、
+
+* 分 - `'T'`
+* 時 - `'H'`
+* 日 - `'D'`
+* 週 - `'W'`
+* 月 - `'M'`
+
+で、15分の場合、`'15T'`と書けばいいです。これで、何分足のデータでも作ることができます。ここでは、1時間足のデータを作ってみました。
+
+# テクニカル指標の作成
+
+シストレの売買ルールで使うテクニカル指標は[GitHub](https://github.com/toyolab/MT5IndicatorsPy)に作ってあります。indicators.pyだけ取ってくれば使えます。ソースコードは省略しますが、内部の繰り返しでpandas使わないようにしたり、Numbaを使ったりしたので、極端に時間のかかる関数はなくなったと思います。~~ただし、アルゴリズムの関係でパラボリックSARは多少時間がかかります。~~
+
+例えば、10バーの移動平均と30バーの移動平均は以下のように書けます。
+
+````py
+import indicators as ind #indicators.pyのインポート
+FastMA = ind.iMA(ohlc, 10) #短期移動平均
+SlowMA = ind.iMA(ohlc, 30) #長期移動平均
+````
+
+# テクニカル指標の表示
+
+作成したテクニカル指標をチャートに表示させるのに、pandasのplot関数でもいいのですが、拡大縮小したいこともあるので、相場関係のサイトでよく見かける[HighCharts](http://www.highcharts.com/)に表示させるPythonのライブラリを使ってみます。
+
+ここでは、簡単にインストールできた[pandas-highcharts](https://github.com/gtnx/pandas-highcharts)を使ってみます。
+
+インストールは、
+
+````
+pip install pandas-highcharts
+````
+
+でOKです。FXの終値と２本の移動平均を表示させるコードは以下のようになります。
+
+````py
+from pandas_highcharts.display import display_charts
+df = pd.DataFrame({'Close': ohlc['Close'], 'FastMA': FastMA, 'SlowMA': SlowMA})
+display_charts(df, chart_type="stock", title="MA cross", figsize=(640,480), grid=True)
+````
+これを実行するとこんなチャートが表示されます。
+
+![chart_y.png](https://qiita-image-store.s3.amazonaws.com/0/131169/db0a3afd-c2f5-fcd2-d84a-46320610148a.png)
+
+１年分を表示させると移動平均がほとんど重なって見えないので、適当にズームすると、こんな感じになり、移動平均の違いが見えるようになります。
+
+![chart_m.png](https://qiita-image-store.s3.amazonaws.com/0/131169/1c6f7853-aa1c-7b3e-3f02-270a192edffb.png)
+
+なかなか便利です。
+
+# 移動平均交差システムの売買ルール
+売買システムの一例として、定番の移動平均の交差システムを取り上げます。売買ルールは、
+
+* 買いシグナル - 短期移動平均線が長期移動平均線を上抜ける
+* 売りシグナル - 短期移動平均線が長期移動平均線を下抜ける
+
+という単純なものです。このシグナルはエントリーのシグナルで、ポジションを決済するためのエグジットシグナルは、買いエグジットは売りエントリーと同じ、売りエグジットは買いエントリー同じものとします。いわゆる途転売買です。
+
+````py
+#買いエントリーシグナル
+BuyEntry = ((FastMA &gt; SlowMA) &amp; (FastMA.shift() &lt;= SlowMA.shift())).values
+#売りエントリーシグナル
+SellEntry = ((FastMA &lt; SlowMA) &amp; (FastMA.shift() &gt;= SlowMA.shift())).values
+#買いエグジットシグナル
+BuyExit = SellEntry.copy()
+#売りエグジットシグナル
+SellExit = BuyEntry.copy()
+````
+
+ここでは、それぞれのシグナルがnumpyのbool型の配列になっています。普通に考えると、時系列データを回しながらシグナルの判別をするところでしょうが、Pythonの場合、配列でまとめて処理した方が速いので、シグナルを配列に入れておきます。
+
+# バックテストの実行
+いよいよバックテストを行います。ヒストリカルデータと、上記の売買シグナルを入力して、実際に売買した価格と損益を時系列データとして出力させます。
+
+````py
+def Backtest(ohlc, BuyEntry, SellEntry, BuyExit, SellExit, lots=0.1, spread=2):
+    Open = ohlc['Open'].values #始値
+    Point = 0.0001 #1pipの値
+    if(Open[0] &gt; 50): Point = 0.01 #クロス円の1pipの値
+    Spread = spread*Point #スプレッド
+    Lots = lots*100000 #実際の売買量
+    N = len(ohlc) #FXデータのサイズ
+    BuyExit[N-2] = SellExit[N-2] = True #最後に強制エグジット
+    BuyPrice = SellPrice = 0.0 # 売買価格
+    
+    LongTrade = np.zeros(N) # 買いトレード情報
+    ShortTrade = np.zeros(N) # 売りトレード情報
+    
+    LongPL = np.zeros(N) # 買いポジションの損益
+    ShortPL = np.zeros(N) # 売りポジションの損益
+
+    for i in range(1,N):
+        if BuyEntry[i-1] and BuyPrice == 0: #買いエントリーシグナル
+            BuyPrice = Open[i]+Spread
+            LongTrade[i] = BuyPrice #買いポジションオープン
+        elif BuyExit[i-1] and BuyPrice != 0: #買いエグジットシグナル
+            ClosePrice = Open[i]
+            LongTrade[i] = -ClosePrice #買いポジションクローズ
+            LongPL[i] = (ClosePrice-BuyPrice)*Lots #損益確定
+            BuyPrice = 0
+
+        if SellEntry[i-1] and SellPrice == 0: #売りエントリーシグナル
+            SellPrice = Open[i]
+            ShortTrade[i] = SellPrice #売りポジションオープン
+        elif SellExit[i-1] and SellPrice != 0: #売りエグジットシグナル
+            ClosePrice = Open[i]+Spread
+            ShortTrade[i] = -ClosePrice #売りポジションクローズ
+            ShortPL[i] = (SellPrice-ClosePrice)*Lots #損益確定
+            SellPrice = 0
+
+    return pd.DataFrame({'Long':LongTrade, 'Short':ShortTrade}, index=ohlc.index),\
+            pd.DataFrame({'Long':LongPL, 'Short':ShortPL}, index=ohlc.index)
+        
+Trade, PL = Backtest(ohlc, BuyEntry, SellEntry, BuyExit, SellExit)
+````
+
+前のバージョンでは、この部分を何段階かに分けていたのですが、今回はまとめてみました。本来ならシグナルだけでトレードできればいいのですが、ポジションがあってもシグナルが出るケースもあるので、ポジションの有無もチェックする形にしました。
+
+この関数の出力のうち、`Trade`には、買いと売りそれぞれに、売買価格をプラスの値、決済価格をマイナスの値で格納してあります。`PL`には、決済時点での実現損益が格納してあります。
+
+# 売買システムの評価
+`Trade`と`PL`の情報があれば、売買システムのだいたいの評価ができます。例えばこんな感じです。
+
+````py
+def BacktestReport(Trade, PL):
+    LongPL = PL['Long']
+    LongTrades = np.count_nonzero(Trade['Long'])//2
+    LongWinTrades = np.count_nonzero(LongPL.clip_lower(0))
+    LongLoseTrades = np.count_nonzero(LongPL.clip_upper(0))
+    print('買いトレード数 =', LongTrades)
+    print('勝トレード数 =', LongWinTrades)
+    print('最大勝トレード =', LongPL.max())
+    print('平均勝トレード =', round(LongPL.clip_lower(0).sum()/LongWinTrades, 2))
+    print('負トレード数 =', LongLoseTrades)
+    print('最大負トレード =', LongPL.min())
+    print('平均負トレード =', round(LongPL.clip_upper(0).sum()/LongLoseTrades, 2))
+    print('勝率 =', round(LongWinTrades/LongTrades*100, 2), '%\n')
+
+    ShortPL = PL['Short']
+    ShortTrades = np.count_nonzero(Trade['Short'])//2
+    ShortWinTrades = np.count_nonzero(ShortPL.clip_lower(0))
+    ShortLoseTrades = np.count_nonzero(ShortPL.clip_upper(0))
+    print('売りトレード数 =', ShortTrades)
+    print('勝トレード数 =', ShortWinTrades)
+    print('最大勝トレード =', ShortPL.max())
+    print('平均勝トレード =', round(ShortPL.clip_lower(0).sum()/ShortWinTrades, 2))
+    print('負トレード数 =', ShortLoseTrades)
+    print('最大負トレード =', ShortPL.min())
+    print('平均負トレード =', round(ShortPL.clip_upper(0).sum()/ShortLoseTrades, 2))
+    print('勝率 =', round(ShortWinTrades/ShortTrades*100, 2), '%\n')
+
+    Trades = LongTrades + ShortTrades
+    WinTrades = LongWinTrades+ShortWinTrades
+    LoseTrades = LongLoseTrades+ShortLoseTrades
+    print('総トレード数 =', Trades)
+    print('勝トレード数 =', WinTrades)
+    print('最大勝トレード =', max(LongPL.max(), ShortPL.max()))
+    print('平均勝トレード =', round((LongPL.clip_lower(0).sum()+ShortPL.clip_lower(0).sum())/WinTrades, 2))
+    print('負トレード数 =', LoseTrades)
+    print('最大負トレード =', min(LongPL.min(), ShortPL.min()))
+    print('平均負トレード =', round((LongPL.clip_upper(0).sum()+ShortPL.clip_upper(0).sum())/LoseTrades, 2))
+    print('勝率 =', round(WinTrades/Trades*100, 2), '%\n')
+
+    GrossProfit = LongPL.clip_lower(0).sum()+ShortPL.clip_lower(0).sum()
+    GrossLoss = LongPL.clip_upper(0).sum()+ShortPL.clip_upper(0).sum()
+    Profit = GrossProfit+GrossLoss
+    Equity = (LongPL+ShortPL).cumsum()
+    MDD = (Equity.cummax()-Equity).max()
+    print('総利益 =', round(GrossProfit, 2))
+    print('総損失 =', round(GrossLoss, 2))
+    print('総損益 =', round(Profit, 2))
+    print('プロフィットファクター =', round(-GrossProfit/GrossLoss, 2))
+    print('平均損益 =', round(Profit/Trades, 2))
+    print('最大ドローダウン =', round(MDD, 2))
+    print('リカバリーファクター =', round(Profit/MDD, 2))
+    return Equity
+Equity = BacktestReport(Trade, PL)
+````
+
+````
+買いトレード数 = 113
+勝トレード数 = 39
+最大勝トレード = 440.4
+平均勝トレード = 82.57
+負トレード数 = 74
+最大負トレード = -169.4
+平均負トレード = -43.89
+勝率 = 34.51 %
+
+売りトレード数 = 113
+勝トレード数 = 49
+最大勝トレード = 327.6
+平均勝トレード = 78.71
+負トレード数 = 64
+最大負トレード = -238.5
+平均負トレード = -43.85
+勝率 = 43.36 %
+
+総トレード数 = 226
+勝トレード数 = 88
+最大勝トレード = 440.4
+平均勝トレード = 80.42
+負トレード数 = 138
+最大負トレード = -238.5
+平均負トレード = -43.87
+勝率 = 38.94 %
+
+総利益 = 7077.0
+総損失 = -6054.4
+総損益 = 1022.6
+プロフィットファクター = 1.17
+平均損益 = 4.52
+最大ドローダウン = 1125.4
+リカバリーファクター = 0.91
+````
+
+ここでは、各項目を表示させていますが、機械学習や最適化を行う場合には、評価値のみを計算させるようにすればよいでしょう。
+
+システムの評価として資産曲線を見たい場合も多いでしょう。上記の関数では、`Equity`として資産曲線を出力させているので、初期資産を加算してグラフにすると以下のようになります。
+
+````py
+Initial = 10000 # 初期資産
+display_charts(pd.DataFrame({'Equity':Equity+Initial}), chart_type="stock", title="資産曲線", figsize=(640,480), grid=True)
+````
+![equity.png](https://qiita-image-store.s3.amazonaws.com/0/131169/6c6e6c1a-37cc-b54b-32ec-38a180c8c964.png)
+
+# トレードチャートの表示
+
+最後に、チャート上のどこで売買したかを表示させてみます。売買したポイントのみを表示させてもいいのですが、HighChartsでの方法がわからないので、ポジションをオープンしたポイントとクローズしたポイントをラインで結んでみます。
+
+以下のようなコードで`Trade`情報からラインに変換してみます。
+
+````py
+def PositionLine(trade):
+    PosPeriod = 0 #ポジションの期間
+    Position = False #ポジションの有無
+    Line = trade.copy()
+    for i in range(len(Line)):
+        if trade[i] &gt; 0: Position = True 
+        elif Position: PosPeriod += 1 # ポジションの期間をカウント
+        if trade[i] &lt; 0:
+            if PosPeriod &gt; 0:
+                Line[i] = -trade[i]
+                diff = (Line[i]-Line[i-PosPeriod])/PosPeriod
+                for j in range(i-1, i-PosPeriod, -1):
+                    Line[j] = Line[j+1]-diff # ポジションの期間を補間
+                PosPeriod = 0
+                Position = False
+        if trade[i] == 0 and not Position: Line[i] = 'NaN'
+    return Line
+
+df = pd.DataFrame({'Open': ohlc['Open'],
+                   'Long': PositionLine(Trade['Long'].values),
+                   'Short': PositionLine(Trade['Short'].values)})
+display_charts(df, chart_type="stock", title="トレードチャート", figsize=(640,480), grid=True)
+````
+同じようにHighChartsに表示されるので、適当にズームしてみます。
+
+![trade.png](https://qiita-image-store.s3.amazonaws.com/0/131169/8acb23aa-89a2-cee4-9da7-3b60ecd73e2e.png)
+
+途転売買のシステムなので、LongポジションとShortポジションが交互に出てくることがわかります。
+
+# まとめ
+売買ルールがテクニカル指標だけで記述できるようなシステムのバックテストを行うコードをPythonで書いてみました。PythonからHighChartsにグラフ表示できるライブラリはなかなか便利でした。まだまだ改善の余地はあるので、気が向いたら続きを書きたいと思います。
+
+続きはこちらです。
+[PythonでFXシストレのバックテスト(2)](http://qiita.com/toyolab/items/8fe0f05cc28af29a9ad9)
+
+なお、本記事で掲載したコードは以下にアップロードしてあります。
+[MT5IndicatorsPy/EA_sample.ipynb](https://nbviewer.jupyter.org/github/toyolab/MT5IndicatorsPy/blob/master/EA_sample.ipynb
+)
+</textarea><input type="submit" name="commit" value="Save changes" data-disable-with="Save changes"></form></div></section></div><div class="col-sm-3"><div class="socialButtons"><div class="socialButtons_twitter"><iframe id="twitter-widget-0" scrolling="no" frameborder="0" allowtransparency="true" class="twitter-share-button twitter-share-button-rendered twitter-tweet-button" title="Twitter Tweet Button" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/tweet_button.3748f7cda49448f6c6f7854238570ba0.en.html" style="position: static; visibility: visible; width: 61px; height: 20px;" data-url="http://qiita.com/toyolab/items/e8292d2f051a88517cb2"></iframe></div><div class="socialButtons_hatebu"><iframe class="hatena-bookmark-button-frame" title="はてブに追加" frameborder="0" scrolling="no" width="70" height="20" src="javascript:false" style="width: 53px; height: 20px;" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/saved_resource.html"></iframe><script async="async" charset="utf-8" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/bookmark_button.js.ダウンロード" type="text/javascript"></script></div><div class="socialButtons_googlePlus"><div id="___plusone_0" style="text-indent: 0px; margin: 0px; padding: 0px; background: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 90px; height: 20px;"><iframe frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 90px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 20px;" tabindex="0" vspace="0" width="100%" id="I0_1483271235338" name="I0_1483271235338" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/fastbutton.html" data-gapiattached="true" title="+1"></iframe></div></div><div class="socialButtons_facebook"><div class="fb-like fb_iframe_widget" data-action="like" data-href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2" data-layout="button_count" data-share="false" data-show-faces="false" fb-xfbml-state="rendered" fb-iframe-plugin-query="action=like&amp;app_id=222621691108322&amp;container_width=0&amp;href=http%3A%2F%2Fqiita.com%2Ftoyolab%2Fitems%2Fe8292d2f051a88517cb2&amp;layout=button_count&amp;locale=en_US&amp;sdk=joey&amp;share=false&amp;show_faces=false"><span style="vertical-align: bottom; width: 61px; height: 20px;"><iframe name="f8df31c86e21d4" width="1000px" height="1000px" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" title="fb:like Facebook Social Plugin" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/like.html" style="border: none; visibility: visible; width: 61px; height: 20px;" class=""></iframe></span></div></div><div class="socialButtons_pocket"><div class="pocket-btn"><iframe width="135" height="22" id="pocket-button-0" frameborder="0" allowtransparency="true" scrolling="NO" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/button.html"></iframe></div></div></div><section class="itemsShowAuthorInfo" itemprop="author" itemscope="" itemtype="http://schema.org/Person"><a href="http://qiita.com/toyolab"><img alt="" class="itemsShowAuthorInfo_userIcon" itemprop="image" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473718172"></a><div class="itemsShowAuthorInfo_profileStats"><strong class="itemsShowAuthorInfo_userName" itemprop="name"><a itemprop="url" href="http://qiita.com/toyolab">toyolab</a></strong><div class="itemsShowAuthorInfo_contribution"><span class="itemsShowAuthorInfo_count">392</span><span class="itemsShowAuthorInfo_unit">Contribution</span></div><div data-react-class="T.UserFollowButton" data-react-props="{&quot;url_name&quot;:&quot;toyolab&quot;,&quot;initial_followed_by&quot;:false,&quot;size&quot;:&quot;btn-xs&quot;,&quot;position&quot;:&quot;author-info&quot;}"><span data-reactroot="" class="userFollowButton"><button class="btn btn-default btn-block userFollowButton_inner btn-xs"><i class="i fa fa-user-plus"></i><!-- react-text: 4 -->フォロー<!-- /react-text --></button></span></div></div><section class="itemsShowAuthorPopularItems"><h5 class="itemsShowAuthorPopularItems_sectionTitle">人気の投稿</h5><ul class="itemsShowAuthorPopularItems_posts list-unstyled"><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/toyolab/items/bccd03d4cb7795112ab6">Bash on Ubuntu on WindowsでTensorFlowを使うためのメモ</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2">PythonでFXシストレのバックテスト(1)</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/toyolab/items/6535420f5ef637a4d2e8">Pythonでランダムウォーク</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/toyolab/items/b5d95bd38b3c7c66b510">PythonコードをNumbaで高速化したときのメモ</a></li><li itemscope="" itemtype="http://schema.org/Article"> <a itemprop="url" track="click" data-label="AuthorPopularItemsAtSidebar" href="http://qiita.com/toyolab/items/1b5d11b5d376bd542022">Pythonでローソク足チャートの表示（matplotlib編）</a></li></ul></section></section><div class="scroll-chaser"><div class="google-adsense"><style>.test-text-responsible { width: 200px; height: 200px; }@media(min-width: 1200px) {  .test-text-responsible { width: 250px; height: 250px; }}@media(max-width: 979px) and (min-width: 768px) {  .test-text-responsible { width: 120px; height: 240px; }}@media(max-width: 767px) {  .test-text-responsible { width: 320px; height: 50px; }}</style><script async="" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/adsbygoogle.js.ダウンロード"></script><ins class="adsbygoogle test-text-responsible" data-ad-client="ca-pub-8127218772604357" data-ad-slot="3880091879" style="display: inline-block; width: 250px; height: 250px;" data-adsbygoogle-status="done"><ins id="aswift_0_expand" style="display:inline-table;border:none;height:250px;margin:0;padding:0;position:relative;visibility:visible;width:250px;background-color:transparent"><ins id="aswift_0_anchor" style="display:block;border:none;height:250px;margin:0;padding:0;position:relative;visibility:visible;width:250px;background-color:transparent"><iframe width="250" height="250" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/saved_resource(1).html"></iframe></ins></ins></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div></div><div data-react-class="T.Toc" data-react-props="{&quot;body&quot;:&quot;\u003cul\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB\&quot;\u003eはじめに\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#fx%E3%83%92%E3%82%B9%E3%83%88%E3%83%AA%E3%82%AB%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E3%81%AE%E5%8F%96%E5%BE%97\&quot;\u003eFXヒストリカルデータの取得\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E4%BB%BB%E6%84%8F%E3%81%AE%E3%82%BF%E3%82%A4%E3%83%A0%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0%E3%83%87%E3%83%BC%E3%82%BF%E3%81%AE%E4%BD%9C%E6%88%90\&quot;\u003e任意のタイムフレームデータの作成\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E3%83%86%E3%82%AF%E3%83%8B%E3%82%AB%E3%83%AB%E6%8C%87%E6%A8%99%E3%81%AE%E4%BD%9C%E6%88%90\&quot;\u003eテクニカル指標の作成\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E3%83%86%E3%82%AF%E3%83%8B%E3%82%AB%E3%83%AB%E6%8C%87%E6%A8%99%E3%81%AE%E8%A1%A8%E7%A4%BA\&quot;\u003eテクニカル指標の表示\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E7%A7%BB%E5%8B%95%E5%B9%B3%E5%9D%87%E4%BA%A4%E5%B7%AE%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E5%A3%B2%E8%B2%B7%E3%83%AB%E3%83%BC%E3%83%AB\&quot;\u003e移動平均交差システムの売買ルール\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E3%83%90%E3%83%83%E3%82%AF%E3%83%86%E3%82%B9%E3%83%88%E3%81%AE%E5%AE%9F%E8%A1%8C\&quot;\u003eバックテストの実行\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E5%A3%B2%E8%B2%B7%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E8%A9%95%E4%BE%A1\&quot;\u003e売買システムの評価\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E3%83%88%E3%83%AC%E3%83%BC%E3%83%89%E3%83%81%E3%83%A3%E3%83%BC%E3%83%88%E3%81%AE%E8%A1%A8%E7%A4%BA\&quot;\u003eトレードチャートの表示\u003c/a\u003e\n\u003c/li\u003e\n\u003cli\u003e\n\u003ca href=\&quot;#%E3%81%BE%E3%81%A8%E3%82%81\&quot;\u003eまとめ\u003c/a\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n&quot;,&quot;wrapper&quot;:&quot;#article-body-wrapper&quot;}"><div style="position: relative; top: 0px; height: 0px;"></div><div data-reactroot="" class="tocTree" style="width: 270px; position: fixed; top: 0px;"><div class="tocTree_contents nav" style="max-height: 690px;"><ul>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB">はじめに</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#fx%E3%83%92%E3%82%B9%E3%83%88%E3%83%AA%E3%82%AB%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E3%81%AE%E5%8F%96%E5%BE%97">FXヒストリカルデータの取得</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E4%BB%BB%E6%84%8F%E3%81%AE%E3%82%BF%E3%82%A4%E3%83%A0%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0%E3%83%87%E3%83%BC%E3%82%BF%E3%81%AE%E4%BD%9C%E6%88%90">任意のタイムフレームデータの作成</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%86%E3%82%AF%E3%83%8B%E3%82%AB%E3%83%AB%E6%8C%87%E6%A8%99%E3%81%AE%E4%BD%9C%E6%88%90">テクニカル指標の作成</a>
+</li>
+<li class="active">
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%86%E3%82%AF%E3%83%8B%E3%82%AB%E3%83%AB%E6%8C%87%E6%A8%99%E3%81%AE%E8%A1%A8%E7%A4%BA">テクニカル指標の表示</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E7%A7%BB%E5%8B%95%E5%B9%B3%E5%9D%87%E4%BA%A4%E5%B7%AE%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E5%A3%B2%E8%B2%B7%E3%83%AB%E3%83%BC%E3%83%AB">移動平均交差システムの売買ルール</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%90%E3%83%83%E3%82%AF%E3%83%86%E3%82%B9%E3%83%88%E3%81%AE%E5%AE%9F%E8%A1%8C">バックテストの実行</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E5%A3%B2%E8%B2%B7%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%81%AE%E8%A9%95%E4%BE%A1">売買システムの評価</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%83%88%E3%83%AC%E3%83%BC%E3%83%89%E3%83%81%E3%83%A3%E3%83%BC%E3%83%88%E3%81%AE%E8%A1%A8%E7%A4%BA">トレードチャートの表示</a>
+</li>
+<li>
+<a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#%E3%81%BE%E3%81%A8%E3%82%81">まとめ</a>
+</li>
+</ul>
+</div></div></div></div></div><div class="row"><div class="col-sm-9"><div class="ArticleFooter__menu"><div class="s-flex-align-center"><div class="js-likebutton" data-props="{&quot;like_status&quot;:false,&quot;like_count&quot;:51,&quot;show_count&quot;:true,&quot;uuid&quot;:&quot;e8292d2f051a88517cb2&quot;,&quot;likable_type&quot;:&quot;Article&quot;,&quot;position&quot;:&quot;article-footer&quot;}"><div data-reactroot="" class="LikeButton"><button class="p-button"><span class="fa fa-fw fa-thumbs-up"></span><span>いいね</span></button><div class="LikeButton__balloon">51</div></div></div><div class="ArticleFooter__userList"><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="mofoolog"><a itemprop="url" href="http://qiita.com/mofoolog"><img alt="mofoolog" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473699355"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="saru999"><a itemprop="url" href="http://qiita.com/saru999"><img alt="saru999" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473690039"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="ytakky"><a itemprop="url" href="http://qiita.com/ytakky"><img alt="ytakky" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473695825"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="kyumon_shota"><a itemprop="url" href="http://qiita.com/kyumon_shota"><img alt="kyumon_shota" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473695880"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="1-AizawaSatoshi"><a itemprop="url" href="http://qiita.com/1-AizawaSatoshi"><img alt="1-AizawaSatoshi" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473707150"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="luminor"><a itemprop="url" href="http://qiita.com/luminor"><img alt="luminor" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473710819"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="ueno3"><a itemprop="url" href="http://qiita.com/ueno3"><img alt="ueno3" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473700135"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="edamabe"><a itemprop="url" href="http://qiita.com/edamabe"><img alt="edamabe" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473709652"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="555ryusuke"><a itemprop="url" href="http://qiita.com/555ryusuke"><img alt="555ryusuke" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473696681"></a></div></div><div class="ArticleFooter__user"><div class="js-hovercard" data-hovercard-target-name="TK8888"><a itemprop="url" href="http://qiita.com/TK8888"><img alt="TK8888" class="thumb thumb--xs" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473696337"></a></div></div><div class="ArticleFooter__user"><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/likers"><span class="fa fa-ellipsis-h"></span></a></div></div></div><div class="u-flex u-align-center"><div class="ArticleFooter__stock"><div class="js-stockButton StockButton" data-counter="" data-path="/toyolab/items/e8292d2f051a88517cb2" data-position="top" data-uuid="e8292d2f051a88517cb2"><form class="button_to" method="post" action="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/stock"><button class="StockButton__stock" type="submit"><div class="fa-stack fa-lg"><span class="fa fa-folder-open fa-stack-1x unstock"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="></form><form class="button_to" method="post" action="http://qiita.com/toyolab/items/e8292d2f051a88517cb2/unstock"><button class="StockButton__unstock" data-toggle="tooltip" title="" type="submit" data-original-title="ストック済み"><div class="fa-stack fa-lg"><span class="fa fa-folder fa-stack-1x"></span><span class="fa fa-check fa-stack-1x fa-inverse"></span></div><span class="StockButton__label">ストック</span></button><input type="hidden" name="authenticity_token" value="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="></form></div></div><div class="ArticleFooter__editRequest"><a class="u-link-no-underline" data-toggle="tooltip" title="" href="http://qiita.com/drafts/e8292d2f051a88517cb2/edit" data-original-title="投稿者に記事をより良くするための提案ができます 💪"><span class="fa fa-send-o fa-lg"></span> <span>編集リクエスト</span></a></div><div class="dropdown ArticleFooter__dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#"><span class="fa fa-ellipsis-h"></span></a><ul class="dropdown-menu dropdown-menu-right"><li><a href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2.md"><span class="fa fa-fw fa-file-text-o"></span> Markdownで本文を見る</a></li><li><a data-target=".js-report-form" data-toggle="modal" href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2#"><i class="fa fa-fw fa-flag"></i> 問題がある投稿を報告する</a></li></ul></div></div></div><ul class="references js-referencesView"><li class="references_header"><i class="fa fa-fw fa-link"></i> この記事は以下の記事からリンクされています</li><li class="references_reference js-reference"><a href="http://qiita.com/toyolab/items/3dfa94a4543dd1eb5239#_reference-ac34e548255e347c1949"><img alt="" width="18" height="18" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473718172">PythonでFXシストレパラメータの最適化</a><span>からリンク</span><time class="references_datetime js-dateTimeView" datetime="2016-07-10T12:39:59+00:00" title="2016/7/10 21:39:59">6ヶ月前</time></li><li class="references_reference js-reference"><a href="http://qiita.com/toyolab/items/5e1c4df852555b2f5342#_reference-ba2c53e767ac478e12f8"><img alt="" width="18" height="18" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473718172">[Python] 要素数の少ないnumpy arrayで最大値・最小値を求める際の注意点</a><span>からリンク</span><time class="references_datetime js-dateTimeView" datetime="2016-07-24T12:34:07+00:00" title="2016/7/24 21:34:07">5ヶ月前</time></li><li class="references_reference js-reference"><a href="http://qiita.com/toyolab/items/8fe0f05cc28af29a9ad9#_reference-60c0cbe0ad3f532b6a0a"><img alt="" width="18" height="18" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/1473718172">PythonでFXシストレのバックテスト(2)</a><span>からリンク</span><time class="references_datetime js-dateTimeView" datetime="2016-09-07T11:05:18+00:00" title="2016/9/7 20:05:18">4ヶ月前</time></li></ul><div class="itemsShowBody_articleColumnFooter"><div class="socialButtons"><div class="socialButtons_twitter"><iframe id="twitter-widget-1" scrolling="no" frameborder="0" allowtransparency="true" class="twitter-share-button twitter-share-button-rendered twitter-tweet-button" title="Twitter Tweet Button" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/tweet_button.3748f7cda49448f6c6f7854238570ba0.en(1).html" style="position: static; visibility: visible; width: 61px; height: 20px;" data-url="http://qiita.com/toyolab/items/e8292d2f051a88517cb2"></iframe></div><div class="socialButtons_hatebu"><iframe class="hatena-bookmark-button-frame" title="はてブに追加" frameborder="0" scrolling="no" width="70" height="20" src="javascript:false" style="width: 53px; height: 20px;" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/saved_resource(2).html"></iframe><script async="async" charset="utf-8" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/bookmark_button.js.ダウンロード" type="text/javascript"></script></div><div class="socialButtons_googlePlus"><div id="___plusone_1" style="text-indent: 0px; margin: 0px; padding: 0px; background: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 90px; height: 20px;"><iframe frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 90px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 20px;" tabindex="0" vspace="0" width="100%" id="I1_1483271235355" name="I1_1483271235355" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/fastbutton(1).html" data-gapiattached="true" title="+1"></iframe></div></div><div class="socialButtons_facebook"><div class="fb-like fb_iframe_widget" data-action="like" data-href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2" data-layout="button_count" data-share="false" data-show-faces="false" fb-xfbml-state="rendered" fb-iframe-plugin-query="action=like&amp;app_id=222621691108322&amp;container_width=0&amp;href=http%3A%2F%2Fqiita.com%2Ftoyolab%2Fitems%2Fe8292d2f051a88517cb2&amp;layout=button_count&amp;locale=en_US&amp;sdk=joey&amp;share=false&amp;show_faces=false"><span style="vertical-align: bottom; width: 61px; height: 20px;"><iframe name="f18519882818874" width="1000px" height="1000px" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" title="fb:like Facebook Social Plugin" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/like(1).html" style="border: none; visibility: visible; width: 61px; height: 20px;" class=""></iframe></span></div></div><div class="socialButtons_pocket"><div class="pocket-btn"><iframe width="135" height="22" id="pocket-button-1" frameborder="0" allowtransparency="true" scrolling="NO" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/button(1).html"></iframe></div></div></div></div><div class="itemsShowComment_wrapper" id="comments"><div data-react-class="T.CommentListContainer" data-react-props="{&quot;currentUser&quot;:null,&quot;initialComments&quot;:[],&quot;monthly_public_image_uploadable_size_limit&quot;:null,&quot;total_uploaded_public_image_size_in_current_month&quot;:null,&quot;item&quot;:{&quot;id&quot;:406717,&quot;uuid&quot;:&quot;e8292d2f051a88517cb2&quot;,&quot;suspended&quot;:false,&quot;secret&quot;:false},&quot;owner&quot;:{&quot;url_name&quot;:&quot;toyolab&quot;},&quot;is_team&quot;:false,&quot;is_project&quot;:false,&quot;logged_in&quot;:false,&quot;polling&quot;:false,&quot;mention_candidates&quot;:[{&quot;id&quot;:131169,&quot;url_name&quot;:&quot;toyolab&quot;,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/131169/profile-images/1473718172&quot;}]}"><div data-reactroot="" class="commentList"><noscript></noscript></div></div></div></div></div></div></article><div class="js-report-form modal fade reportForm"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button name="button" type="submit" class="close" data-dismiss="modal">×</button><h4 class="modal-title">問題がある投稿を報告する</h4></div><div class="modal-body"><form action="http://qiita.com/reports" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓"><input type="hidden" name="authenticity_token" value="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="><input type="hidden" name="redirect_path" id="redirect_path" value="/toyolab/items/e8292d2f051a88517cb2"><input type="hidden" name="item_uuid" id="item_uuid" value="e8292d2f051a88517cb2"><p>この投稿にどのような問題がありますか？</p><br><div class="form-group"><ul class="list-unstyled"><li><label><input type="radio" name="report_type" id="report_type_spam" value="spam" required="required"> スパムです </label></li><li><label><input type="radio" name="report_type" id="report_type_harassment" value="harassment" required="required"> 攻撃的または迷惑な内容を含んでいます </label></li><li><label><input type="radio" name="report_type" id="report_type_inappropriate_content" value="inappropriate_content" required="required"> 不適切な内容を含んでいます </label></li></ul></div><div class="reportForm_submitButtonContainer"><button name="button" type="submit" class="btn btn-primary reportForm_submitButton"><i class="fa fa-send"></i> 送信</button></div></form></div></div></div></div><script id="js-item" type="application/json">{ "url": "http://qiita.com/toyolab/items/e8292d2f051a88517cb2", "id": 406717, "uuid": "e8292d2f051a88517cb2" }</script><script class="js-user" type="application/json">{&quot;id&quot;:131169,&quot;url_name&quot;:&quot;toyolab&quot;,&quot;profile_image_url&quot;:&quot;https://qiita-image-store.s3.amazonaws.com/0/131169/profile-images/1473718172&quot;}</script><script language="JavaScript" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/qiita_bigmining.js.ダウンロード" type="text/javascript"></script></div><footer class="footer"><div class="footer_inner"><div class="footer_container"><ul class="footer_links-left"><li class="footer_link"><a class="footer_copyright" href="http://increments.co.jp/">© 2017 Increments Inc.</a></li><li class="footer_link"><a href="http://qiita.com/terms">利用規約</a></li><li class="footer_link"><a href="http://qiita.com/privacy">プライバシー</a></li><li class="footer_link"><a href="http://help.qiita.com/">ヘルプ</a></li><li class="footer_link"><a href="https://increments.zendesk.com/anonymous_requests/new">お問い合わせ</a></li></ul><ul class="footer_links-right"><li class="footer_link"><a href="http://qiita.com/about">Qiitaとは</a></li><li class="footer_link"><a href="http://blog.qiita.com/">ブログ</a></li><li class="footer_link"><a href="http://qiita.com/api/v2/docs">API</a></li><li class="footer_link"><a href="https://teams.qiita.com/">Team</a></li><li class="footer_link"><a href="http://kobito.qiita.com/">Kobito</a></li><li class="footer_link"><a class="js-public-form-feedback-link" data-target=".js-feedback-form" data-toggle="modal" href="http://qiita.com/toyolab/items/e8292d2f051a88517cb2"><i class="fa fa-heart"></i> ご意見 <i class="fa fa-caret-down"></i></a></li></ul></div></div></footer><div class="js-feedback-form modal fade feedbackForm"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button name="button" type="submit" class="close" data-dismiss="modal">×</button><h4 class="modal-title">ご意見</h4></div><div class="modal-body"><form class="js-feedback-form-form" action="http://qiita.com/feedbacks" accept-charset="UTF-8" method="post"><input name="utf8" type="hidden" value="✓"><input type="hidden" name="authenticity_token" value="R2OFIdJlObuVStcXQG2t0pFvePzN5xCFan3ENengz4kgav9LTWL0lBTnwhNotYeGUevk6oHU7UmJsjH9RKmRSw=="><input type="hidden" name="redirect_path" id="redirect_path" value="/toyolab/items/e8292d2f051a88517cb2"><div class="form-group"><textarea name="feedback[message]" id="feedback_message" class="form-control js-feedback-form-text-area" placeholder="Qiitaについてのご意見をお聞かせください。" required="required" rows="5"></textarea></div><div class="feedbackForm_submitButtonContainer"><button name="button" type="submit" class="btn btn-primary feedbackForm_submitButton"><i class="fa fa-send"></i> 送信</button><p class="feedbackForm_note">いただいたご意見への返信は行っておりません。<br>返信の必要な内容については、<a href="https://increments.zendesk.com/anonymous_requests/new">こちら</a> からお問い合わせください。</p></div><div style="position:fixed;top:-99999px;opacity:0.0001;"><input name="feedback[name]" type="text"></div></form></div></div></div></div><script>// if (window.mixpanel instanceof Element) {
+//   window.mixpanel = [];
+// }
+// (function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");
+// for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="//cdn.mxpnl.com/libs/mixpanel-2.2.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);</script><script src="./PythonでFXシストレのバックテスト(1) - Qiita_files/public-fdf24df61a083ca5f74c8b717c9c4ff9.min.js.ダウンロード"></script><div id="fb-root" class=" fb_reset"><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div><iframe name="fb_xdm_frame_http" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_http" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/iPrOY23SGAp.html" style="border: none;"></iframe><iframe name="fb_xdm_frame_https" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_https" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/iPrOY23SGAp(1).html" style="border: none;"></iframe></div></div><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div></div></div></div><script>
+  (function () {
+    var script = document.getElementsByTagName('script')[0];
+    var load = function (src, id) {
+      var el = document.createElement('script');
+      el.async = true;
+      el.src = src;
+      el.id = id;
+      script.parentNode.insertBefore(el, script);
+    };
+      // Optimizely
+      load('//cdn.optimizely.com/js/52738645.js', 'optimizely-jssdk');
+      // Google Analytics
+      window._gaq = window._gaq || [];
+      var isCareer = location.hostname.split('.')[0] == 'career';
+      if (isCareer) {
+        window._gaq.push(['_setAccount', 'UA-24675221-11']);
+        window._gaq.push(['_setDomainName', 'qiita.com']);
+      } else {
+        window._gaq.push(['_setAccount', 'UA-24675221-1']);
+      }
+      window._gaq.push(['_setCustomVar', 1, 'logged_in', 'false', 2]);
+      window._gaq.push(['_trackPageview']);
+      var src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      load(src, 'google-analytics-jssdk');
+    // Google Analytics - Universal Analytics
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-24675221-12', {
+          
+        });
+        ga('set', 'dimension1', 'false');
+        ga('set', 'dimension3', 'false');
+      ga('require', 'displayfeatures');
+      ga('set', 'forceSSL', true);
+      ga('send', 'pageview');
+    // Google Tag Manager
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-TBQWPN');
+  })();
+</script>
+<div class="ReactModalPortal"><div data-reactroot=""></div></div><iframe name="oauth2relay891462803" id="oauth2relay891462803" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/postmessageRelay.html" tabindex="-1" aria-hidden="true" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe><img src="./PythonでFXシストレのバックテスト(1) - Qiita_files/dmp" width="1" height="1" border="0" style="display: none;"><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-58Z82M');</script><iframe id="rufous-sandbox" scrolling="no" frameborder="0" allowtransparency="true" allowfullscreen="true" style="position: absolute; visibility: hidden; display: none; width: 0px; height: 0px; padding: 0px; border: none;" title="Twitter analytics iframe" src="./PythonでFXシストレのバックテスト(1) - Qiita_files/saved_resource(3).html"></iframe><div style="display: none; visibility: hidden;"><script type="text/javascript">(function(b,a,c){b=a.getElementsByTagName(c)[0];a=a.createElement(c);a.async=!0;a.src="//dmp.im-apps.net/js/6638/0001/itm.js";b.parentNode.insertBefore(a,b)})(window,document,"script");</script></div><div style="display: none; visibility: hidden;"><iframe src="./PythonでFXシストレのバックテスト(1) - Qiita_files/activityi.html" width="1" height="1" frameborder="0" style="display:none"></iframe></div><div style="display: none; visibility: hidden;"><iframe src="./PythonでFXシストレのバックテスト(1) - Qiita_files/activityi(1).html" width="1" height="1" frameborder="0" style="display:none"></iframe></div><div style="display: none; visibility: hidden;">
+<script src="./PythonでFXシストレのバックテスト(1) - Qiita_files/oct.js.ダウンロード" type="text/javascript"></script>
+<script type="text/javascript">twttr.conversion.trackPid("nv2kc",{tw_sale_amount:0,tw_order_quantity:0});</script>
+<noscript></noscript>
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","809797712462041");fbq("track","PageView");</script>
+<noscript></noscript>
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,c,d,a){b.twq||(a=b.twq=function(){a.exe?a.exe.apply(a,arguments):a.queue.push(arguments)},a.version="1",a.queue=[],t=c.createElement(d),t.async=!0,t.src="//static.ads-twitter.com/uwt.js",s=c.getElementsByTagName(d)[0],s.parentNode.insertBefore(t,s))}(window,document,"script");twq("init","nve3t");twq("track","PageView");</script>
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","996402550503199");fbq("track","PageView");</script>
+<noscript></noscript>
+
+</div><div style="display: none; visibility: hidden;">
+<script>!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.queue.push(arguments)},b._fbq||(b._fbq=a),a.push=a,a.loaded=!0,a.version="2.0",a.queue=[],c=e.createElement(f),c.async=!0,c.src=g,d=e.getElementsByTagName(f)[0],d.parentNode.insertBefore(c,d))}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init","954575148009345");fbq("track","PageView");</script>
+<noscript></noscript>
+
+</div><script src="./PythonでFXシストレのバックテスト(1) - Qiita_files/adsct" type="text/javascript"></script><script type="text/javascript" id="">!function(c,d,b,f){if(!d[c]){d[c]=function(){d[c].instances.push(this);this.init&&this.init()};d[c].instances=[];for(var a=0,e=["td_send","td_send_imid"];a<e.length;a++)d[c].prototype[e[a]]=function(a){return function(){this["tmp_"+a]=this["tmp_"+a]||[];this["tmp_"+a].push(Array.prototype.slice.call(arguments))}}(e[a]);a=b.getElementsByTagName(f)[0];b=b.createElement(f);b.async=!0;b.src="//cf.im-apps.net/sdk/tdim-0.11.2.js";a.parentNode.insertBefore(b,a)}}("TDIM",window,document,"script");var t=new TDIM;
+t.td_api_key="4633/44ab22321675f37f93c94f1c53265720999626e1";t.td_db="6638";t.im_api_token="omO0CDJd98sxiIkb8Mzm7Q";t.gtm_dl="dataLayer";t.td_send_imid("pageviews",{qiita_search_categories:google_tag_manager["GTM-5SNCW4"].macro('gtm1483271237182')});</script><script type="text/javascript" id="">(function(a){var b=a.createElement("iframe"),c="https:"==a.location.protocol?"https://":"http://";b.src=c+"cf.im-apps.net/imid/beacon.html";b.style.display="none";a.body.appendChild(b)})(document);</script><iframe src="./PythonでFXシストレのバックテスト(1) - Qiita_files/beacon.html" style="display: none;"></iframe><script src="./PythonでFXシストレのバックテスト(1) - Qiita_files/adsct(1)" type="text/javascript"></script></body></html>
