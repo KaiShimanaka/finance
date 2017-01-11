@@ -11,6 +11,7 @@ def AddHenkaritu(HistData, tankiHaba, tyoukiHaba):
     FastMA = ind.iMA(HistData, tankiHaba) #短期移動平均
     SlowMA = ind.iMA(HistData, tyoukiHaba) #長期移動平均
     
+    tankiHenkaritu=pd.DataFrame({'tankiHenkaritu':0})
     
     #複数コレクションを同時にループ
     for (i,close),fast,slow in zip(enumerate(HistData['Close']),FastMA,SlowMA):
