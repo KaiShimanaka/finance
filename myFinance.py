@@ -11,8 +11,7 @@ def AddHenkaritu(HistData, tankiHaba, tyoukiHaba):
     FastMA = ind.iMA(HistData, tankiHaba) #短期移動平均
     SlowMA = ind.iMA(HistData, tyoukiHaba) #長期移動平均
     
-    tankiHenkaritu=pd.DataFrame({'tankiHenkaritu':0})
-    
+    HistData['tankiHenkaritu']=0
     #複数コレクションを同時にループ
     for (i,close),fast,slow in zip(enumerate(HistData['Close']),FastMA,SlowMA):
         
@@ -33,3 +32,10 @@ def AddHenkaritu(HistData, tankiHaba, tyoukiHaba):
     HistData.append(tyokiHenkaritu)
     return HistData
 
+
+#各チャート作成
+#タイムフレーム調整
+#テーブルに格納
+#ある時点での各タイムフレーム現在（一本前と比較）、短期、中期、長期向き作成
+#?1どの通貨とも一貫して価値が上がっている、下がっているやつを見つける
+#?2ディープラーニング？
