@@ -2,34 +2,16 @@
 
 # In[1]:
 
-import numpy as np
 import pandas as pd
 from pandas_highcharts.display import display_charts
-
-from enum import Enum
 import os
 
-# dfのデータからtfで指定するタイムフレームの4本足データを作成する関数
-def TF_ohlc(df, tf):
-    x = df.resample(tf).ohlc()
-    O = x['Open']['open']
-    H = x['High']['high']
-    L = x['Low']['low']
-    C = x['Close']['close']
-    ret = pd.DataFrame({'Open': O, 'High': H, 'Low': L, 'Close': C},
-                       columns=['Open','High','Low','Close'])
-    return ret.dropna()
-
-#最初の値を１００として割合に整形する関数
-def TranData(histData):
-    haba=histData['Close'][0]
-    histData=histData/haba -1
-    return histData
-
-class Pair:
+class financeMain:
     pairList={}
+    currencyList=[]
+    
     def __init__(self):
-        self.OpenAllFile(r'C:\Users\simnk\workspace\finance\HISTDATA2015', 'H')
+        self.OpenAllFile(r'C:\\Users\\simnk\\workspace\\finance\\HISTDATA2015', 'H')
         
     #全ファイルを開いてデータを展開
     @classmethod
@@ -43,23 +25,40 @@ class Pair:
             histData.index += pd.offsets.Hour(7) #7時間のオフセット
             #描画に時間がかかるので１時間足に変換
             #0 +-1 に編集
-            self.pairList[pair]=TranData(TF_ohlc(histData, 'H'))
-        
-    #全ペアのチャートを表示
-    @classmethod
-    def ShowAll(self):
-        df = pd.DataFrame({'EURUSD': self.pairList['EURUSD']['Close'],
-                          'EURJPY': self.pairList['EURJPY']['Close'],
-                          'USDJPY': self.pairList['USDJPY']['Close']})
-        display_charts(df, chart_type="stock", title="MA cross", grid=True)
-    
-    #指定したペアのチャートを表示
-    @classmethod
-    def Show(self, pair):
-        df = pd.DataFrame({pair: self.pairList[pair]['Close']})
-        display_charts(df, chart_type="stock", title="MA cross", grid=True)
-    
+            self.pairList[pair]=self.TranData(self.TF_ohlc(histData, 'H'))
             
+    # dfのデータからtfで指定するタイムフレームの4本足データを作成する関数
+    @classmethod
+    def TF_ohlc(self, df, tf):
+        x = df.resample(tf).ohlc()
+        O = x['Open']['open']
+        H = x['High']['high']
+        L = x['Low']['low']
+        C = x['Close']['close']
+        ret = pd.DataFrame({'Open': O, 'High': H, 'Low': L, 'Close': C},
+                           columns=['Open','High','Low','Close'])
+        return ret.dropna()
+    
+    #最初の値を１００として割合に整形する関数
+    @classmethod
+    def TranData(self, histData):
+        haba=histData['Close'][0]
+        histData=histData/haba -1
+        return histData
+    
+    #全通貨の相対価値を表示するチャート
+    def ShowVersusAll(self):
+        currencies=[]
+        for key in self.pairList.keys():
+            forward=key[:3]
+            backward=key[3:6]
+            if not forward in currencies:
+                self.ShowVersusCurrency(forward)
+                currencies.append(forward)
+            if not backward in currencies:
+                self.ShowVersusCurrency(backward)
+                currencies.append(backward)
+        
     #指定した通貨の相対価値を表示するチャート
     @classmethod
     def ShowVersusCurrency(self, currency):
@@ -78,17 +77,21 @@ class Pair:
         df = pd.DataFrame(versusList)
         display_charts(df, chart_type="stock", title=currency+' '+strVs, grid=True)
         
-    #指定した通貨の相対価値を表示するチャート
-    @classmethod
-    def ShowVersusAll(self):
-        currencies=[]
-        for key in self.pairList.keys():
-            forward=key[:3]
-            backward=key[3:6]
-            if not forward in currencies:
-                self.ShowVersusCurrency(forward)
-                currencies.append(forward)
-            if not backward in currencies:
-                self.ShowVersusCurrency(backward)
-                currencies.append(backward)
+        return df
             
+    #全ペアのチャートを表示
+    @classmethod
+    def ShowAll(self):
+        df = pd.DataFrame({'EURUSD': self.pairList['EURUSD']['Close'],
+                          'EURJPY': self.pairList['EURJPY']['Close'],
+                          'USDJPY': self.pairList['USDJPY']['Close']})
+        display_charts(df, chart_type="stock", title="MA cross", grid=True)
+    
+    #指定したペアのチャートを表示
+    @classmethod
+    def Show(self, pair):
+        df = pd.DataFrame({pair: self.pairList[pair]['Close']})
+        display_charts(df, chart_type="stock", title="MA cross", grid=True)
+    
+            
+  

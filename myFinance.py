@@ -11,8 +11,6 @@ import math
 
 
 
-
-
 # dfのデータからtfで指定するタイムフレームの4本足データを作成する関数
 def AddHenkaritu(HistData, tankiHaba, tyoukiHaba):
     FastMA = ind.iMA(HistData, tankiHaba) #短期移動平均
