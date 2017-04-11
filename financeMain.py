@@ -30,6 +30,7 @@ class financeMain:
     # dfのデータからtfで指定するタイムフレームの4本足データを作成する関数
     @classmethod
     def TF_ohlc(self, df, tf):
+        #x = df.resample(tf).ohlc()
         x = df.resample(tf).ohlc()
         O = x['Open']['open']
         H = x['High']['high']
